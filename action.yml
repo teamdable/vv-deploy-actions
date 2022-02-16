@@ -1,0 +1,6 @@
+name: deploy to edge device
+description: Deploy source codes to edge device
+author: hyeseung-of-dable
+runs:
+  using: docker
+  main: Dockerfile
