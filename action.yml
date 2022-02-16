@@ -16,6 +16,14 @@ inputs:
   zipfilename:
     description: zip file name
     required: true
+
 runs:
-  using: docker
-  main: Dockerfile
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install pandas,requests for api call
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install -r requirements.txt
