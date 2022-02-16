@@ -1,6 +1,21 @@
 name: deploy to edge device
+author: Hyeseung Lee
 description: Deploy source codes to edge device
-author: hyeseung-of-dable
+inputs:
+  hostname:
+    description: hostname (multiple available)
+    required: true  
+  password:
+    description: edge device password
+    required: true
+  otp:
+    required: true
+  code_name:
+    description: code module name ex.vv-edge-setup
+    required: true
+  zipfilename:
+    description: zip file name
+    required: true
 runs:
   using: docker
   main: Dockerfile
