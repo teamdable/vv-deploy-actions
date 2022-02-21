@@ -10,7 +10,7 @@ from typing import List
 from pathlib import Path
 
 def change_working_directory():
-    filepath = Path(__file__).parent
+    filepath = Path(__file__).parent.parent
     os.chdir(filepath)
 
 def get_api_response(url: str) -> dict:
@@ -80,7 +80,7 @@ def get_deploy_target_ips(data_api_url: str,
 if __name__ == '__main__':
     change_working_directory()
     
-    parser = configargparse.ArgParser(default_config_files=['vpn-config.ini'])
+    parser = configargparse.ArgParser(default_config_files=['bin/deploy/vpn-config.ini'])
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
     parser.add_argument('--vv-data-api', action='store', type=str, default="",
                         help='vpn ip를 가져오기 위한 api url.')
