@@ -11,6 +11,18 @@ on:
         description: code module name
         required: true
         type: string
+      parent-dir:
+        description: code directory of the edge device
+        required: true
+        type: string
+      version-file-name:
+        description: _version_.py or .version
+        required: true
+        type: string
+      exclude-files-from-zip:
+        description: files that you want to delete from zip
+        required: false
+        type: string
     secrets:
       tailscale-authkey:
         description: tailscale authkey to add runner to the tailnet
@@ -20,7 +32,7 @@ on:
         required: true
       otp:
         description: edge device otp
-        required: true
+        required: true 
 
 jobs:
   deploy-and-install:
@@ -46,7 +58,7 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Install pandas,requests for api call
+      - name: Install python packages for api call
         run: |
           python3 -m pip install --upgrade pip
           pip install -r action/requirements.txt
@@ -57,15 +69,15 @@ jobs:
 
       - name: Build
         run: |
-          suffix=$(date '+%Y-%m-%d_%H:%M:%S')
+          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
           zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
           echo "ZIP_FILE_NAME=$zip_file_name" >> $GITHUB_ENV
 
           git archive --format=zip main -o $zip_file_name
-          zip --delete $zip_file_name ".github/*" 
-
+          zip --delete $zip_file_name ".github/*" ".gitignore"
+          zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}
 
       - name: Deploy & Install
         run: |
           sudo apt-get install expect oathtool
-          action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.code-name }}
+          action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} 
