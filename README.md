@@ -20,6 +20,9 @@ e.g. \_\_pycache\_\_/*
 - `password` - edge device의 비밀번호
 
 ## Usage
+vv-deploy-actions의 reusable workflows를 활용하는 레포지토리에 `bin/deploy/install-settings.sh`, `bin/deploy/vpn-config.ini` 파일들이 필요하다. 예시는 [example/](https://github.com/teamdable/vv-deploy-actions/blob/main/example/)에서 확인할 수 있다.
+
+`.github/workflows/your-workflow-name.yml`의 예시는 아래에서 확인할 수 있다.
 ``` yml
 name: Continuous Deploy
 on: push
