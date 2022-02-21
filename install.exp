@@ -5,11 +5,12 @@ set hostname [lindex $argv 1]
 set password [lindex $argv 2]
 set otp [lindex $argv 3]
 set zip_file_name [lindex $argv 4]
-set code_name [lindex $argv 5]
+set parent_dir [lindex $argv 5]
+set code_name [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} "unzip -qo /tmp/${zip_file_name} bin/deploy/backup-and-unzip -d /tmp/; bash /tmp/bin/deploy/backup-and-unzip ${zip_file_name} /home/${user} ${code_name}; rm -rf /tmp/bin; bash /home/${user}/${code_name}/bin/deploy/install-settings.sh ${password}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; backup-and-unzip ${zip_file_name} ${parent_dir} ${code_name}; bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}"
 expect {
         "Password:" {
                 send "${password}\n"
