@@ -1,5 +1,6 @@
 #!/bin/bash
 HOST=$1
+VERSION_FILE=$2
 
 if [[ -z `grep "__version__" version_check_$HOST.txt` ]]
 then 
@@ -7,7 +8,7 @@ then
 	exit 1
 fi
 
-source_version=`cat .version | awk '{print $3}'`
+source_version=`cat $VERSION_FILE | awk '{print $3}'`
 target_version=`grep __version__ version_check_$HOST.txt | awk '{print $3}'`
 if [[ $source_version == $target_version ]]
 then
