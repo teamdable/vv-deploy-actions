@@ -1,4 +1,6 @@
 # vv-deploy-actions
+vv-deploy-actions는 edge device에 소스 코드를 배포하는 작업을 reusable workflow로 제공한다. \
+⚠️ warning ⚠️ 해당 repository는 public으로 관리되므로, commit시 주의하도록 한다. 
 
 ## Variables
 ### Input variables
