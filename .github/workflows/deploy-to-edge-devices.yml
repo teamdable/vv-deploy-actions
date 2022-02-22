@@ -11,6 +11,11 @@ on:
         description: code module name
         required: true
         type: string
+      deploy-branch: 
+        description: branch to be deployed
+        default: main
+        required: false
+        type: string
       parent-dir:
         description: code directory of the edge device
         required: true
@@ -73,7 +78,7 @@ jobs:
           zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
           echo "ZIP_FILE_NAME=$zip_file_name" >> $GITHUB_ENV
 
-          git archive --format=zip main -o $zip_file_name
+          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
           zip --delete $zip_file_name ".github/*" ".gitignore"
           zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}
 

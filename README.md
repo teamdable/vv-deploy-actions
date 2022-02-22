@@ -16,8 +16,7 @@ vv-deploy-actions는 edge device에 소스 코드를 배포하는 작업을 reus
 - `user` - edge device의 사용자 이름
 - `code-name` - 배포하고자하는 코드 모듈 이름(배포 장비에서 사용되는 프로젝트 루트명을 따른다.) \
 e.g. edge-player, process, resource
-- `code-version` - 배포하고자하는 모듈의 버전 파일 \
-e.g. _version.py, .version
+- `deploy-branch` - 배포하고자하는 코드 모듈의 배포 브랜치 \
 - `parent-dir` - 배포 장비에서 모듈의 부모 경로 \
 e.g. `/home/${user}`
 - `version-file-name` - 배포하고자하는 모듈의 버전 파일 이름 \
@@ -132,6 +131,7 @@ uses: teamdable/vv-deploy-actions/.github/workflows/deploy-to-edge-devices.yml@m
 with:
     user: 'ubuntu'
 !   code-name: 'process'
+!   deploy-branch: ${GITHUB_REF##*/}    
 !   parent-dir: '/home/ubuntu/monitoring/'
 !   version-file-name: '_version.py'
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
@@ -151,6 +151,7 @@ uses: teamdable/vv-deploy-actions/.github/workflows/deploy-to-edge-devices.yml@m
 with:
     user: 'ubuntu'
 !   code-name: 'inference'
+!   deploy-branch: ${GITHUB_REF##*/} 
 !   parent-dir: '/home/ubuntu/'
 !   version-file-name: '_version.py'
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
