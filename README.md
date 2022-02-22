@@ -10,6 +10,8 @@ vv-deploy-actions는 edge device에 소스 코드를 배포하는 작업을 reus
 -------------------------------
 
 ## Variables
+배포하려는 소스코드의 repository에서 vv-deploy-actions의 reusable workflow를 활용할 때, 필요한 변수들에 대한 설명은 아래에서 확인한다.
+
 ### Input variables
 - `user` - edge device의 사용자 이름
 - `code-name` - 배포하고자하는 코드 모듈 이름(배포 장비에서 사용되는 프로젝트 루트명을 따른다.) \
@@ -28,91 +30,98 @@ e.g. \_\_pycache\_\_/*
 - `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
 
+-------------------------------
+
 ## Usage
-vv-deploy-actions의 reusable workflows를 활용하는 레포지토리에 `bin/deploy/install-settings.sh`, `bin/deploy/vpn-config.ini` 파일들이 필요하다. 예시는 [example/](https://github.com/teamdable/vv-deploy-actions/blob/main/example/)에서 확인할 수 있다.
+vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, install 작업은 필요하지 않다.
 
-`.github/workflows/your-workflow-name.yml`의 예시는 아래에서 확인할 수 있다.
-``` yml
-name: Continuous Deploy
-on: push
+배포하려는 소스코드의 repository에서는 workflow파일에서 vv-deploy-actions의 reusable workflows를 호출한다. ( 아래의 1번, 2번 과정을 따른다. )
 
-jobs:
-job-name:
-    uses: teamdable/vv-deploy-actions/.github/workflows/deploy-to-edge-devices.yml@main
-    with:
-      user: '$USERNAME'
-      code-name: '$CODE_NAME'
-      parent-dir: '$PARENT_DIR'
-      version-file-name: '$VERSION_FILE'
-      exclude-files-from-zip: '$EXCLUDE_FILE'
-    secrets:
-      tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-      password: ${{ secrets.PASSWORD }}
-      otp: ${{ secrets.OTP }}
-```
+1. `bin/deploy/install-settings.sh`, `bin/deploy/vpn-config.ini` 파일들이 필요하다. 예시는 [example/](https://github.com/teamdable/vv-deploy-actions/blob/main/example/)에서 확인할 수 있다.
 
-output: 
-<details>
-<summary>Add runner to the tailnet</summary>
+2. `.github/workflows/your-workflow-name.yml`를 작성한다. 예시는 아래에서 확인할 수 있다.
+	``` yml
+	name: Continuous Deploy
+	on: push
 
-- Success
-	```
-	Success.
+	jobs:
+	job-name:
+	  uses: teamdable/vv-deploy-actions/.github/workflows/deploy-to-edge-devices.yml@main
+	  with:
+	    user: '$USERNAME'
+	    code-name: '$CODE_NAME'
+	    parent-dir: '$PARENT_DIR'
+	    version-file-name: '$VERSION_FILE'
+	    exclude-files-from-zip: '$EXCLUDE_FILE'
+	  secrets:
+	    tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+	    password: ${{ secrets.PASSWORD }}
+	    otp: ${{ secrets.OTP }}
 	```
 
-- Fail: 정상적으로 tailscale authkey가 전달되지않았거나, key가 expire된 경우에는 이 step에서 종료됩니다.
-</details>
+	#### output: 
+	<details>
+	<summary>Add runner to the tailnet</summary>
 
-<details>
-<summary>Build</summary>
+	- Success
+		```
+		Success.
+		```
 
-- Success
-	```
-	deleting: .github/
-	deleting: .github/workflows/
-	deleting: .github/workflows/main-cd.yml
-	```
-</details>
+	- Fail: 정상적으로 tailscale authkey가 전달되지않았거나, key가 expire된 경우에는 이 step에서 종료됩니다.
+	</details>
 
-<details>
-<summary>Deploy & Install</summary>
+	<details>
+	<summary>Build</summary>
 
-- All success: 모든 HOST에 성공적으로 배포되면, 정상적으로 종료됩니다.
+	- Success
+		```
+		deleting: .github/
+		deleting: .github/workflows/
+		deleting: .github/workflows/main-cd.yml
+		```
+	</details>
 
-	```
-	hostname: 127.0.0.1
-	build & deploy Success
-	install Success
+	<details>
+	<summary>Deploy & Install</summary>
 
-	hostname: 127.0.0.2
-	build & deploy Success
-	install Success
+	- All success: 모든 HOST에 성공적으로 배포되면, 정상적으로 종료됩니다.
 
-	hostname: 127.0.0.3
-	build & deploy Success
-	install Success
+		```
+		hostname: 127.0.0.1
+		build & deploy Success
+		install Success
 
-	Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다
-	Deploy: 
-	Install:
-	```
+		hostname: 127.0.0.2
+		build & deploy Success
+		install Success
 
-- Fail: 모든 HOST에 배포를 진행하고, 과정이 완료된 후에 하나라도 배포가 실패했을 시에 Actions가 실패합니다.
+		hostname: 127.0.0.3
+		build & deploy Success
+		install Success
 
-	```
-	hostname: 127.0.0.2
-	build & deploy Success
-	[err] target version과 source version이 일치하지않습니다
+		Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다
+		Deploy: 
+		Install:
+		```
 
-	hostname: 127.0.0.3
-	[err] 배포 대상 edge device에 deploy 작업이 제대로 루어지지않았습니다
+	- Fail: 모든 HOST에 배포를 진행하고, 과정이 완료된 후에 하나라도 배포가 실패했을 시에 Actions가 실패합니다.
 
-	Deploy와 Install에 실패한 기기들의 hostname은 다음과 습니다
-	Deploy: 127.0.0.3
-	Install: 127.0.0.2 127.0.0.3
-	```
-</details>
+		```
+		hostname: 127.0.0.2
+		build & deploy Success
+		[err] target version과 source version이 일치하지않습니다
 
+		hostname: 127.0.0.3
+		[err] 배포 대상 edge device에 deploy 작업이 제대로 루어지지않았습니다
+
+		Deploy와 Install에 실패한 기기들의 hostname은 다음과 습니다
+		Deploy: 127.0.0.3
+		Install: 127.0.0.2 127.0.0.3
+		```
+	</details>
+
+-------------------------------
 
 ## Example
 #### 1. 프로세스 모니터링 모듈을 배포대상 장비의 ~/monitoring/process로 배포
