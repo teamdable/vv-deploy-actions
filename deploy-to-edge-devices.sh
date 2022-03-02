@@ -3,21 +3,23 @@ USER=$1
 PASSWORD=$2
 OTP=$3
 ZIP_FILE_NAME=$4
-CODE_NAME=$5
+PARENT_DIR=$5
+CODE_NAME=$6
+VERSION_FILE=$7
 
 NOT_DEPLOYED_HOST=()
 NOT_INSTALLED_HOST=()
-for HOST in `cat bin/deploy/.tailscale-ip`
+for HOST in `cat .tailscale-ip`
 do
 	echo "hostname: $HOST"
 
 	# 1. deploy - scp로 zip 패키지 전송
-	bin/deploy/deploy.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME > /dev/null
+	action/deploy.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME > /dev/null
 	sleep 10
 	# 1-1. deploy check
-	bin/deploy/deploy-check.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME > deploy_check_$HOST.txt
+	action/deploy-check.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME > deploy_check_$HOST.txt
 	sleep 10
-	bin/deploy/deploy-check.sh $HOST $ZIP_FILE_NAME
+	action/deploy-check.sh $HOST $ZIP_FILE_NAME
 	result=$?
 
 	if [[ $result -eq 1 ]]
@@ -26,12 +28,12 @@ do
 		NOT_INSTALLED_HOST+=( $HOST )
 	else
 		# 2. install - edge서버에서 해당 모듈을 사용할 수 있도록 압축 해제 & 패키지 설치
-		bin/deploy/install.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME $CODE_NAME > install_check_$HOST.txt
+		action/install.exp $USER $HOST $PASSWORD $OTP $ZIP_FILE_NAME $PARENT_DIR $CODE_NAME > install_check_$HOST.txt
 		sleep 10
 		# 2-2. install check 
-		bin/deploy/install-check.exp $USER $HOST $PASSWORD $OTP $CODE_NAME > version_check_$HOST.txt
+		action/install-check.exp $USER $HOST $PASSWORD $OTP $PARENT_DIR $CODE_NAME $VERSION_FILE > version_check_$HOST.txt
 		sleep 10
-		bin/deploy/install-check.sh $HOST
+		action/install-check.sh $HOST $VERSION_FILE
 		result=$?
 
 		if [[ $result -eq 1 ]]
