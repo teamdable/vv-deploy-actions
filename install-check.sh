@@ -34,7 +34,6 @@ then
 	echo "install Success"
 	exit 0
 else
-	echo "source version: $source_version, target version: $target_version"
 	echo "[err] target version과 source version이 일치하지않습니다"
 	exit 1
 fi
