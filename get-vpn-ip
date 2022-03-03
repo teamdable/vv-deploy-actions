@@ -1,38 +1,16 @@
 #!/usr/bin/env python3
 
 import os
-import json
 
-import requests
-import pandas as pd
 import configargparse
+from vv_edge_info.edge_info import get_edge_info_df
 from typing import List
 from pathlib import Path
+
 
 def change_working_directory():
     filepath = Path(__file__).parent.parent
     os.chdir(filepath)
-
-def get_api_response(url: str) -> dict:
-    response = requests.get(url=url)
-    if response.status_code == 200:
-        response = json.loads(response.text)
-        return response
-    else:
-        raise Exception(f'Failed to GET: {url}\nstatus code: {response.status_code}')
-
-
-def get_device_df_from_api(api_url: str) -> pd.DataFrame:
-    try:
-        response = get_api_response(url = api_url)
-    except requests.exceptions.ConnectionError as e:
-        raise Exception('Failed to GET vv-data-api') from None
-    except Exception as e:
-        raise e
-    else:
-        device_df = pd.DataFrame.from_records(response)
-        device_df = device_df[['inventory_id', 'location_id', 'device_id', 'vpn_ip']]
-    return device_df
 
 
 def write_list_to_files(input_list: List[str]) -> str:
