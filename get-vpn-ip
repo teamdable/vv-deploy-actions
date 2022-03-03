@@ -82,16 +82,15 @@ if __name__ == '__main__':
     
     parser = configargparse.ArgParser(default_config_files=['bin/deploy/vpn-config.ini'])
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
-    parser.add_argument('--vv-data-api', action='store', type=str, default="",
-                        help='vpn ip를 가져오기 위한 api url.')
-    parser.add_argument('--target-devices', action='append', type=str, default=[],
-                        help='vv-data-api에서 배포 대상에 포함할 device id.')
-    parser.add_argument('--exclude-devices', action='append', type=str, default=[],
-                        help='vv-data-api에서 배포 대상에서 제외할 device id.')
-    parser.add_argument('--allow-devices-ip', action='append', type=str, default=[],
-                        help='추가적으로 배포 대상에 포함할 device ip주소.')
+    parser.add_argument('--include-api-live-inventory', action='store_true',
+                        help='live inventory를 결과에 포함시킬지 여부.')
+    parser.add_argument('--allow-devices', action='append', default=[],
+                        help='결과에 포함할 디바이스 정보. comma separated list.')
+    parser.add_argument('--exclude-devices', action='append', default=[],
+                        help='결과에서 제외할 디바이스 정보. allow-list보다 우선시 됨.')
+    parser.add_argument('--exclude-inventory-id', action='append', default=[],
+                        help='결과에서 제외할 인벤토리 정보. allow-list보다 우선시 됨.')
     args = parser.parse_args()
-    
     try:
         deploy_vpn_ips = get_deploy_target_ips(args.vv_data_api, args.target_devices,
                                                args.exclude_devices, args.allow_devices_ip)
