@@ -21,38 +21,23 @@ def write_list_to_files(input_list: List[str]) -> str:
             f.write(i + "\n")
 
 
-def print_warning(data_api_url: str,
-                  target_devices: list,
-                  exclude_devices: list,
-                  allow_devices_ip: list):
-    if data_api_url != '':
-        if target_devices == []: # api O target X
-            print('Warning: 배포 대상 장비를 찾을 수 없습니다. target devices를 확인하세요.')
-    else:
-        if target_devices != [] or exclude_devices != []: # api X target/exclude O
-            print(f'Warning: vv-data-api url을 입력하지않아, 배포 대상 장비 추가하거나 제외할 수 없습니다.\nallow devices ip만 사용하세요.')
- 
+def main(include_api_live_inventory: bool,
+         allow_devices: List,
+         exclude_devices: List,
+         exclude_inventory_id: List):
 
-def get_deploy_target_ips(data_api_url: str,
-                          target_devices: list,
-                          exclude_devices: list,
-                          allow_devices_ip: list) -> str:
-    print_warning(data_api_url, target_devices, exclude_devices, allow_devices_ip)
+    edge_info = get_edge_info_df(include_api_live_inventory=include_api_live_inventory,
+                                 allow_devices=allow_devices,
+                                 exclude_devices=exclude_devices,
+                                 exclude_inventory_id=exclude_inventory_id)
 
     deploy_vpn_ips = []
-    if data_api_url != '':      
-        device_df = get_device_df_from_api(data_api_url)
-        device_df = device_df[device_df['device_id'].isin(target_devices)] # + target_devices 
-        device_df = device_df[~device_df['device_id'].isin(exclude_devices)] # - exclude_devices
-        deploy_vpn_ips.extend(device_df.vpn_ip.values)
+    deploy_vpn_ips.extend(edge_info.vpn_ip.values)
 
-    deploy_vpn_ips.extend(allow_devices_ip)
     write_list_to_files(deploy_vpn_ips)
 
     if deploy_vpn_ips == '':
-	    raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
-    
-    return deploy_vpn_ips
+        raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
 
 
 if __name__ == '__main__':
@@ -70,8 +55,9 @@ if __name__ == '__main__':
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 우선시 됨.')
     args = parser.parse_args()
     try:
-        deploy_vpn_ips = get_deploy_target_ips(args.vv_data_api, args.target_devices,
-                                               args.exclude_devices, args.allow_devices_ip)
-
+        main(args.include_api_live_inventory,
+                              args.allow_devices,
+                              args.exclude_devices,
+                              args.exclude_inventory_id)
     except Exception as e:
         raise e
