@@ -71,6 +71,4 @@ jobs:
       - name: Kill and Start process
         run: |
           sudo apt-get install expect oathtool
-          ls -al
-          ls -al action/
           action/restart_process_after_deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }}
