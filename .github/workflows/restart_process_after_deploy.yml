@@ -36,8 +36,8 @@ on:
         required: true
 
 jobs:
-  deploy-and-install:
-    name: deploy-and-install
+  restart-after-deploy:
+    name:   restart-after-deploy
     runs-on: ubuntu-20.04
     steps:
       - name: Add runner to the tailnet
@@ -68,7 +68,7 @@ jobs:
         run: |
           python3 action/get-vpn-ip
 
-      - name: Deploy & Install
+      - name: Kill and Start process
         run: |
           sudo apt-get install expect oathtool
           action/restart_process_after_deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }}
