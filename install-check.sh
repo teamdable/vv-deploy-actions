@@ -17,7 +17,7 @@ extract_version() {
 
 if [[ $VERSION_FILE == "package.json" ]]
 then
-	version_key_string="version"
+	version_key_string="\"version\""
 elif [[ $VERSION_FILE = ".version" ]] || [[ $VERSION_FILE = "_version.py" ]]
 then
 	version_key_string="__version__"
