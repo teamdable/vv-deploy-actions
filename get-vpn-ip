@@ -26,10 +26,10 @@ def main(include_api_live_inventory: bool,
          exclude_devices: List,
          exclude_inventory_id: List):
 
-    edge_info = get_edge_info_df(include_api_live_inventory=include_api_live_inventory,
-                                 allow_devices=allow_devices,
-                                 exclude_devices=exclude_devices,
-                                 exclude_inventory_id=exclude_inventory_id)
+    edge_info = get_edge_info_df(include_api_live_inventory = include_api_live_inventory,
+                                 allow_devices = allow_devices,
+                                 exclude_devices = exclude_devices,
+                                 exclude_inventory_id = exclude_inventory_id)
 
     deploy_vpn_ips = []
     deploy_vpn_ips.extend(edge_info.vpn_ip.values)
