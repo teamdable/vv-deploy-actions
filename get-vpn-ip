@@ -1,38 +1,16 @@
 #!/usr/bin/env python3
 
 import os
-import json
 
-import requests
-import pandas as pd
 import configargparse
+from vv_edge_info.edge_info import get_edge_info_df
 from typing import List
 from pathlib import Path
+
 
 def change_working_directory():
     filepath = Path(__file__).parent.parent
     os.chdir(filepath)
-
-def get_api_response(url: str) -> dict:
-    response = requests.get(url=url)
-    if response.status_code == 200:
-        response = json.loads(response.text)
-        return response
-    else:
-        raise Exception(f'Failed to GET: {url}\nstatus code: {response.status_code}')
-
-
-def get_device_df_from_api(api_url: str) -> pd.DataFrame:
-    try:
-        response = get_api_response(url = api_url)
-    except requests.exceptions.ConnectionError as e:
-        raise Exception('Failed to GET vv-data-api') from None
-    except Exception as e:
-        raise e
-    else:
-        device_df = pd.DataFrame.from_records(response)
-        device_df = device_df[['inventory_id', 'location_id', 'device_id', 'vpn_ip']]
-    return device_df
 
 
 def write_list_to_files(input_list: List[str]) -> str:
@@ -43,38 +21,23 @@ def write_list_to_files(input_list: List[str]) -> str:
             f.write(i + "\n")
 
 
-def print_warning(data_api_url: str,
-                  target_devices: list,
-                  exclude_devices: list,
-                  allow_devices_ip: list):
-    if data_api_url != '':
-        if target_devices == []: # api O target X
-            print('Warning: 배포 대상 장비를 찾을 수 없습니다. target devices를 확인하세요.')
-    else:
-        if target_devices != [] or exclude_devices != []: # api X target/exclude O
-            print(f'Warning: vv-data-api url을 입력하지않아, 배포 대상 장비 추가하거나 제외할 수 없습니다.\nallow devices ip만 사용하세요.')
- 
+def main(include_api_live_inventory: bool,
+         allow_devices: List,
+         exclude_devices: List,
+         exclude_inventory_id: List):
 
-def get_deploy_target_ips(data_api_url: str,
-                          target_devices: list,
-                          exclude_devices: list,
-                          allow_devices_ip: list) -> str:
-    print_warning(data_api_url, target_devices, exclude_devices, allow_devices_ip)
+    edge_info = get_edge_info_df(include_api_live_inventory = include_api_live_inventory,
+                                 allow_devices = allow_devices,
+                                 exclude_devices = exclude_devices,
+                                 exclude_inventory_id = exclude_inventory_id)
 
     deploy_vpn_ips = []
-    if data_api_url != '':      
-        device_df = get_device_df_from_api(data_api_url)
-        device_df = device_df[device_df['device_id'].isin(target_devices)] # + target_devices 
-        device_df = device_df[~device_df['device_id'].isin(exclude_devices)] # - exclude_devices
-        deploy_vpn_ips.extend(device_df.vpn_ip.values)
+    deploy_vpn_ips.extend(edge_info.vpn_ip.values)
 
-    deploy_vpn_ips.extend(allow_devices_ip)
+    if not deploy_vpn_ips:
+        raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
+
     write_list_to_files(deploy_vpn_ips)
-
-    if deploy_vpn_ips == '':
-	    raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
-    
-    return deploy_vpn_ips
 
 
 if __name__ == '__main__':
@@ -82,19 +45,20 @@ if __name__ == '__main__':
     
     parser = configargparse.ArgParser(default_config_files=['bin/deploy/vpn-config.ini'])
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
-    parser.add_argument('--vv-data-api', action='store', type=str, default="",
-                        help='vpn ip를 가져오기 위한 api url.')
-    parser.add_argument('--target-devices', action='append', type=str, default=[],
-                        help='vv-data-api에서 배포 대상에 포함할 device id.')
-    parser.add_argument('--exclude-devices', action='append', type=str, default=[],
-                        help='vv-data-api에서 배포 대상에서 제외할 device id.')
-    parser.add_argument('--allow-devices-ip', action='append', type=str, default=[],
-                        help='추가적으로 배포 대상에 포함할 device ip주소.')
+    parser.add_argument('--include-api-live-inventory', action='store_true',
+                        help='live inventory를 결과에 포함시킬지 여부.')
+    parser.add_argument('--allow-devices', action='append', default=[],
+                        help='결과에 포함할 디바이스 정보. comma separated list.')
+    parser.add_argument('--exclude-devices', action='append', default=[],
+                        help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
+    parser.add_argument('--exclude-inventory-id', action='append', default=[],
+                        help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
     args = parser.parse_args()
-    
     try:
-        deploy_vpn_ips = get_deploy_target_ips(args.vv_data_api, args.target_devices,
-                                               args.exclude_devices, args.allow_devices_ip)
+        main(include_api_live_inventory = args.include_api_live_inventory,
+             allow_devices = args.allow_devices,
+             exclude_devices = args.exclude_devices,
+             exclude_inventory_id = args.exclude_inventory_id)
 
     except Exception as e:
         raise e
