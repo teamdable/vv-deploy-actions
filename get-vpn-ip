@@ -55,9 +55,10 @@ if __name__ == '__main__':
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
     args = parser.parse_args()
     try:
-        main(args.include_api_live_inventory,
-                              args.allow_devices,
-                              args.exclude_devices,
-                              args.exclude_inventory_id)
+        main(include_api_live_inventory = args.include_api_live_inventory,
+             allow_devices = args.allow_devices,
+             exclude_devices = args.exclude_devices,
+             exclude_inventory_id = args.exclude_inventory_id)
+
     except Exception as e:
         raise e
