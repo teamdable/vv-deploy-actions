@@ -7,7 +7,7 @@ on:
         description: edge device username
         required: true
         type: string
-      code-name:
+      process-name:
         description: code module name
         required: true
         type: string
@@ -15,10 +15,6 @@ on:
         description: branch to be deployed
         default: main
         required: false
-        type: string
-      parent-dir:
-        description: code directory of the edge device
-        required: true
         type: string
       version-file-name:
         description: _version_.py or .version
@@ -71,4 +67,4 @@ jobs:
       - name: Kill and Start process
         run: |
           sudo apt-get install expect oathtool
-          action/restart_process_after_deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }}
+          action/restart_process_after_deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }}

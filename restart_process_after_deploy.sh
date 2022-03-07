@@ -2,8 +2,7 @@
 USER=$1
 PASSWORD=$2
 OTP=$3
-PARENT_DIR=$4
-CODE_NAME=$5
+PROCESS_NAME=$4
 
 NOT_KILLED_HOST=()
 NOT_STARTED_HOST=()
@@ -12,10 +11,9 @@ do
 	echo "hostname: $HOST"
 
   # 1. 프로세스 끄기
-  action/kill_process.exp $USER $HOST $PASSWORD $OTP $PARENT_DIR $CODE_NAME
+  action/kill_process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
   result=$?
-
-  if [[ $result -eq 1 ]]
+  if [[ $result -gt 0 ]]
   then
     NOT_KILLED_HOST+=( $HOST )
   fi
@@ -23,10 +21,9 @@ do
 
   sleep 5
   # 2. 프로세스 켜기
-  action/start_process.exp $USER $HOST $PASSWORD $OTP $PARENT_DIR $CODE_NAME
+  action/start_process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
   result=$?
-
-  if [[ $result -eq 1 ]]
+  if [[ $result -gt 0 ]]
   then
     NOT_STARTED_HOST+=( $HOST )
   fi

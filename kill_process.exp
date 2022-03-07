@@ -4,12 +4,11 @@ set user [lindex $argv 0]
 set hostname [lindex $argv 1]
 set password [lindex $argv 2]
 set otp [lindex $argv 3]
-set parent_dir [lindex $argv 5]
-set code_name [lindex $argv 6]
+set process_name [lindex $argv 4]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; kill-${code_name}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; kill-${process_name}"
 expect {
         "Password:" {
                 send "${password}\n"
@@ -19,4 +18,7 @@ expect {
                 send "${otp_code}\n"
                 exp_continue
         }
-}
+        eof
+    }
+catch wait result
+exit [lindex $result 3]
