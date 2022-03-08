@@ -1,2 +1,2 @@
 ConfigArgparse
-vv-edge-info
+vv-edge-info==1.0.0
