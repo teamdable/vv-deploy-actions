@@ -80,7 +80,7 @@ jobs:
 
           git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
           zip --delete $zip_file_name ".github/*" ".gitignore"
-          zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}
+          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
 
       - name: Deploy & Install
         run: |
