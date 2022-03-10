@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+
+set user [lindex $argv 0]
+set hostname [lindex $argv 1]
+set password [lindex $argv 2]
+set otp [lindex $argv 3]
+set process_name [lindex $argv 4]
+set otp_code [exec oathtool --totp -b ${otp}]
+
+set timeout 20
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; kill-${process_name}"
+expect {
+        "Password:" {
+                send "${password}\n"
+                exp_continue
+        }
+        "Verification code:" {
+                send "${otp_code}\n"
+                exp_continue
+        }
+        eof
+    }
+catch wait result
+exit [lindex $result 3]

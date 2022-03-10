@@ -21,3 +21,7 @@ expect {
                 exp_continue
         }
 }
+
+foreach {pid spawnid os_error_flag value} [wait] break
+puts "Exit code of spawned process: $value"
+exit $value
