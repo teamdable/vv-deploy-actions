@@ -212,7 +212,7 @@ jobs:
     uses: teamdable/vv-deploy-actions/.github/workflows/restart_process_after_deploy.yml@main
     with:
       user: 'ubuntu'
-!     code-name: 'inference'
+!     process-name: 'inference'
     secrets:
       tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
       password: ${{ secrets.PASSWORD }}
