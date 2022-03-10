@@ -11,10 +11,6 @@ on:
         description: process name 
         required: true
         type: string
-      version-file-name:
-        description: version metadata file name
-        required: true
-        type: string
     secrets:
       tailscale-authkey:
         description: tailscale authkey to add runner to the tailnet
