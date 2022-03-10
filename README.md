@@ -32,6 +32,8 @@ e.g. \_\_pycache\_\_/*
 - `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
 - `otp` - otp 생성기 설정번호
+- `extra-index-url` - private pip 서버 index url
+- `trusted-host` - private pip 서버 host
 
 -------------------------------
 
@@ -60,6 +62,8 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 	    tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 	    password: ${{ secrets.PASSWORD }}
 	    otp: ${{ secrets.OTP }}
+	    extra-index-url: ${{ secrets.EXTRA_INDEX_URL }}
+	    trusted-host: ${{ secrets.TRUSTED_HOST }}
 	```
 
 	output: 
@@ -141,9 +145,11 @@ with:
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
 +   exclude-files-from-zip: 'bin/deploy/vpn-config.ini __pycache__/*'
 secrets:
-    tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+    tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
     password: ${{ secrets.PASSWORD }}
     otp: ${{ secrets.OTP }}
+    extra-index-url: ${{ github.event.inputs.extra-index-url }}
+    trusted-host: ${{ github.event.inputs.trusted-host }}
 ```
 
 #### 2. inference 모듈을 배포대상 장비의 ~/inference 위치에 배포
@@ -161,9 +167,11 @@ with:
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
 +   
 secrets:
-    tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+    tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
     password: ${{ secrets.PASSWORD }}
     otp: ${{ secrets.OTP }}
+    extra-index-url: ${{ github.event.inputs.extra-index-url }}
+    trusted-host: ${{ github.event.inputs.trusted-host }}
 ```
 
 -------------------------------
@@ -181,6 +189,8 @@ e.g. inference, edge-player, process, resource
 - `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
 - `otp` - otp 생성기 설정번호
+- `extra-index-url` - private pip 서버 index url
+- `trusted-host` - private pip 서버 host
 
 -------------------------------
 
@@ -200,11 +210,13 @@ on:
 jobs:
   restart-process-in-edge:
     uses: teamdable/vv-deploy-actions/.github/workflows/restart_process_after_deploy.yml@main
-	with:
-		user: 'ubuntu'
-!	    code-name: 'inference'
-	secrets:
-		tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
-		password: ${{ secrets.PASSWORD }}
-		otp: ${{ secrets.OTP }}
+    with:
+      user: 'ubuntu'
+!     process-name: 'inference'
+    secrets:
+      tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
+      password: ${{ secrets.PASSWORD }}
+      otp: ${{ secrets.OTP }}
+      extra-index-url: ${{ github.event.inputs.extra-index-url }}
+      trusted-host: ${{ github.event.inputs.trusted-host }}
 ```
