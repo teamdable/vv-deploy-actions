@@ -21,6 +21,12 @@ on:
       otp:
         description: edge device otp
         required: true
+      extra-index-url:
+        description: private pypi index url
+        required: true
+      trusted-host:
+        description: private pypi trusted host
+        required: true
 
 jobs:
   restart-after-deploy:
@@ -49,7 +55,7 @@ jobs:
       - name: Install python packages for api call
         run: |
           python3 -m pip install --upgrade pip
-          pip install -r action/requirements.txt
+          pip install -r action/requirements.txt --extra-index-url ${{ secrets.extra-index-url }} --trusted-host ${{ secrets.trusted-host }}
 
       - name: Get VPN IP of deploy-target devices
         run: |
