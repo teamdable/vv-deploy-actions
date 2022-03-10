@@ -8,16 +8,7 @@ on:
         required: true
         type: string
       process-name:
-        description: code module name
-        required: true
-        type: string
-      deploy-branch:
-        description: branch to be deployed
-        default: main
-        required: false
-        type: string
-      version-file-name:
-        description: _version_.py or .version
+        description: process name 
         required: true
         type: string
     secrets:
@@ -67,4 +58,4 @@ jobs:
       - name: Kill and Start process
         run: |
           sudo apt-get install expect oathtool
-          action/restart_process_after_deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }}
+          action/restart-process-after-deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }}

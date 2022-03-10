@@ -1,18 +1,21 @@
 # vv-deploy-actions
-vv-deploy-actions는 edge device에 소스 코드를 배포하는 작업을 reusable workflow로 제공한다. \
+vv-deploy-actions는 edge device에 소스 코드 배포와 프로세스 재시작하는 작업을 reusable workflow로 제공한다. \
 ⚠️ warning ⚠️ 해당 repository는 public으로 관리되므로, commit시 주의하도록 한다. 
 
 ## Contents
-1. [Variables](#Variables): vv-deploy-actions 사용시 필요한 변수들
-2. [Usage](#Usage): vv-deploy-actions 사용법
-3. [Example](#Example): vv-deploy-actions 사용 예시
-
+1. [Deploy Actions](#deploy-actions): 소스 코드 배포 작업을 제공
+	1. Variables: deploy-actions 사용시 필요한 변수들
+	2. Usage: deploy-actions 사용법
+	3. Example: deploy-actions 사용 예시
+2. [Restart Actions](#restart-actions): edge device에서의 프로세스 재시작 작업을 제공
+	1. Variables: restart-actions 사용시 필요한 변수들
+	2. Example: restart-actions 사용 예시
 -------------------------------
-
-## Variables
+## deploy-actions
+### Variables
 배포하려는 소스코드의 repository에서 vv-deploy-actions의 reusable workflow를 활용할 때, 필요한 변수들에 대한 설명은 아래에서 확인한다.
 
-### Input variables
+#### Input variables
 - `user` - edge device의 사용자 이름
 - `code-name` - 배포하고자하는 코드 모듈 이름(배포 장비에서 사용되는 프로젝트 루트명을 따른다.) \
 e.g. edge-player, process, resource
@@ -25,13 +28,14 @@ e.g.  _version.py or .version
 e.g. \_\_pycache\_\_/*
 
 
-### Secrets Variables
+#### Secrets Variables
 - `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
+- `otp` - otp 생성기 설정번호
 
 -------------------------------
 
-## Usage
+### Usage
 vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, install 작업은 필요하지 않다.
 
 배포하려는 소스코드의 repository에서는 workflow파일에서 vv-deploy-actions의 reusable workflows를 호출한다. ( 아래의 1번, 2번 과정을 따른다. )
@@ -58,7 +62,7 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 	    otp: ${{ secrets.OTP }}
 	```
 
-	#### output: 
+	output: 
 	<details>
 	<summary>Add runner to the tailnet</summary>
 
@@ -122,7 +126,7 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 
 -------------------------------
 
-## Example
+### Example
 #### 1. 프로세스 모니터링 모듈을 배포대상 장비의 ~/monitoring/process로 배포
 - 버전을 표기하는 메타데이터를 _version.py로 명시한다.
 - 배포 압축 파일에서 복수개의 파일들을 제외한다.
@@ -160,4 +164,47 @@ secrets:
     tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
     password: ${{ secrets.PASSWORD }}
     otp: ${{ secrets.OTP }}
+```
+
+-------------------------------
+## restart-actions
+### Variables
+배포하려는 소스코드의 repository에서 vv-deploy-actions의 reusable workflow를 활용할 때, 필요한 변수들에 대한 설명은 아래에서 확인한다.
+
+#### Input variables
+- `user` - edge device의 사용자 이름
+- `process-name` - 실행하고자하는 프로세스 이름 \
+e.g. inference, edge-player, process, resource
+
+
+#### Secrets Variables
+- `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
+- `password` - edge device의 비밀번호
+- `otp` - otp 생성기 설정번호
+
+-------------------------------
+
+### Example
+#### inference 프로세스를 재시작
+```diff
+name: Restart After Deployment
+
+on:
+  # manually trigger
+  workflow_dispatch:
+    inputs:
+      tailscale-key:
+        description: 'tailscale ephemeral key'
+        required: true
+
+jobs:
+  restart-process-in-edge:
+    uses: teamdable/vv-deploy-actions/.github/workflows/restart_process_after_deploy.yml@main
+	with:
+		user: 'ubuntu'
+!	    code-name: 'inference'
+	secrets:
+		tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
+		password: ${{ secrets.PASSWORD }}
+		otp: ${{ secrets.OTP }}
 ```
