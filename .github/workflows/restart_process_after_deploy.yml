@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       process-name:
-        description: code module name
+        description: process name 
         required: true
         type: string
       deploy-branch:
@@ -17,7 +17,7 @@ on:
         required: false
         type: string
       version-file-name:
-        description: _version_.py or .version
+        description: version metadata file name
         required: true
         type: string
     secrets:
