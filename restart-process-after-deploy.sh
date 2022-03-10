@@ -11,7 +11,7 @@ do
 	echo "hostname: $HOST"
 
   # 1. 프로세스 끄기
-  action/kill_process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
+  action/kill-process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
   result=$?
   if [[ $result -gt 0 ]]
   then
@@ -21,7 +21,7 @@ do
 
   sleep 5
   # 2. 프로세스 켜기
-  action/start_process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
+  action/start-process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
   result=$?
   if [[ $result -gt 0 ]]
   then
