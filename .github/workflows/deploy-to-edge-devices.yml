@@ -28,6 +28,10 @@ on:
         description: files that you want to delete from zip
         required: false
         type: string
+      slack-channel:
+        description: after deploy & install, send message to this slack channle
+        required: true
+        type: string
     secrets:
       password:
         description: edge device password
@@ -72,4 +76,4 @@ jobs:
       - name: Deploy & Install
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} 
+          action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} ${{ inputs.slack-channel }}
