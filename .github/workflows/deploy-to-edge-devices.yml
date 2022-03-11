@@ -55,20 +55,15 @@ jobs:
         with:
           repository: teamdable/vv-deploy-actions
           path: action/
-      
-      - name: Setup python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
 
       - name: Install python packages for api call
         run: |
-          python3 -m pip install --upgrade pip
-          pip install -r action/requirements.txt --extra-index-url ${{ secrets.extra-index-url }} --trusted-host ${{ secrets.trusted-host }}
+          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/python3.8 -m pip install --upgrade pip
+          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/pip3.8 install -r action/requirements.txt
 
       - name: Get VPN IP of deploy-target devices
         run: | 
-          python3 action/get-vpn-ip
+          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/python3.8 action/get-vpn-ip
 
       - name: Build
         run: |
