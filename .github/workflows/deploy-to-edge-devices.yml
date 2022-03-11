@@ -71,5 +71,5 @@ jobs:
 
       - name: Deploy & Install
         run: |
-          sudo apt-get install expect oathtool
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} 
