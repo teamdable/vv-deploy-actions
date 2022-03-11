@@ -35,12 +35,6 @@ on:
       otp:
         description: edge device otp
         required: true
-      extra-index-url:
-        description: private pypi index url
-        required: true
-      trusted-host:
-        description: private pypi trusted host
-        required: true
 
 jobs:
   deploy-and-install:
