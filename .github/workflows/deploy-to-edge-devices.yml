@@ -29,9 +29,6 @@ on:
         required: false
         type: string
     secrets:
-      tailscale-authkey:
-        description: tailscale authkey to add runner to the tailnet
-        required: true
       password:
         description: edge device password
         required: true
@@ -48,13 +45,8 @@ on:
 jobs:
   deploy-and-install:
     name: deploy-and-install
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     steps:
-      - name: Add runner to the tailnet
-        uses: tailscale/github-action@v1
-        with:
-          authkey: ${{ secrets.tailscale-authkey }}
-      
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
 
