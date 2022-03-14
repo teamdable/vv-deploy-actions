@@ -182,7 +182,7 @@ secrets:
 #### Input variables
 - `user` - edge device의 사용자 이름
 - `process-name` - 실행하고자하는 프로세스 이름 \
-e.g. inference, edge-player, process, resource
+e.g. inference, edge-player, process-monitoring, resource-monitoring
 
 
 #### Secrets Variables
