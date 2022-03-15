@@ -4,7 +4,7 @@ import os
 from typing import List
 from pathlib import Path
 
-import configargparse
+import vv_configargparse 
 from vv_edge_info.edge_info import get_edge_info_df
 
 
@@ -42,8 +42,9 @@ def main(include_api_live_inventory: bool,
 
 if __name__ == '__main__':
     change_working_directory()
-    
-    parser = configargparse.ArgParser(default_config_files=['bin/deploy/vpn-config.ini'])
+    parser = vv_configargparse.ArgumentParser(default_config_path='bin/deploy/vpn-config.ini',
+                                              overriding_config_name='vv-deploy-actions-config.ini',
+                                              allow_overriding=False)
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
     parser.add_argument('--include-api-live-inventory', action='store_true',
                         help='live inventory를 결과에 포함시킬지 여부.')
