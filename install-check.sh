@@ -11,7 +11,7 @@ extract_version() {
 		echo "배포 대상 edge device의 version 파일을 읽어올 수 없습니다."
 		exit 1
 	fi
-	version=`echo $raw_version_data | sed 's/[^a0-9.]//g'`
+	version=`echo $raw_version_data | sed 's/[^abrc0-9.]//g'`
 	echo $version
 }
 
