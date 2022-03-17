@@ -52,12 +52,12 @@ jobs:
 
       - name: Install python packages for api call
         run: |
-          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/python3.8 -m pip install --upgrade pip
-          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/pip3.8 install -r action/requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r action/requirements.txt
 
       - name: Get VPN IP of deploy-target devices
         run: | 
-          /home/${{ inputs.user }}/.pyenv/versions/3.8.10/envs/deploy/bin/python3.8 action/get-vpn-ip
+          action/get-vpn-ip
 
       - name: Build
         run: |
