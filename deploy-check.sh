@@ -1,8 +1,30 @@
 #!/bin/bash
-HOST=$1
-ZIP_FILE_NAME=$2
+LONG=host:,zip-file-name:
+OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
+[ $? -eq 0 ] || {
+    echo "인자전달이 잘못되었습니다. "
+    exit 1
+}
+eval set -- "$OPTS"
 
-# TODO: 더 깔끔하게 txt 파일에서 에러 확인하는 방법으로 변경
+while [[ $# -gt 0 ]]
+do
+	case "$1" in
+	--host)
+		HOST=$2
+		shift 2
+		;;
+	--zip-file-name)
+		ZIP_FILE_NAME=$2
+		shift 2
+		;;
+	--)
+		shift
+		break
+		;;
+	esac
+done
+
 if ! [[ -z `grep "/tmp/$ZIP_FILE_NAME exist" deploy_check_$HOST.txt` ]]
 then
 		echo "build & deploy Success"

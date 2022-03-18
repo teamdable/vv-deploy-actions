@@ -48,5 +48,5 @@ jobs:
 
       - name: Kill and Start process
         run: |
-          sudo apt-get install expect oathtool
-          action/restart-process-after-deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }} ${{ inputs.slack-channel }}
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          action/restart-process-after-deploy.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }} --slack-channel ${{ inputs.slack-channel }}

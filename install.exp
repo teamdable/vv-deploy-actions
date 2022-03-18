@@ -10,7 +10,7 @@ set code_name [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; backup-and-unzip ${zip_file_name} ${parent_dir} ${code_name}; bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}; bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}"
 expect {
         "Password:" {
                 send "${password}\n"

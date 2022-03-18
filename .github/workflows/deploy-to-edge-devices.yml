@@ -74,6 +74,6 @@ jobs:
           if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
 
       - name: Deploy & Install
-        run: |
+        run: | 
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} ${{ inputs.slack-channel }}
+          action/deploy-to-edge-devices.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ env.ZIP_FILE_NAME }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }} --slack-channel ${{ inputs.slack-channel }}
