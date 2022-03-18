@@ -55,7 +55,7 @@ else
 		Install: ${NOT_INSTALLED_HOST[@]}"
 	exitcode=1
 fi
-source /etc/profile; cd $SCRIPT_DIR/bin;
-python slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL}
+source /etc/profile
+slackboy send --message “${deploy_result_message}” --channel ${SLACK_CHANNEL}
 
 exit $exitcode
