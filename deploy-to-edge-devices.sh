@@ -49,8 +49,34 @@ do
 	esac
 done
 
+vpn_ip_to_device_id() {
+	TARGET_HOSTS_VPN_IP=$@
+	
+	TARGET_DEVICES_ID=()
+	for HOST in $TARGET_HOSTS_VPN_IP
+	do
+		DEVICE_ID=`edge-info-search --query vpn_ip==$HOST -c device_id`
+		TARGET_DEVICES_ID+=( $DEVICE_ID )
+	done
+	echo ${TARGET_DEVICES_ID[@]}
+}
+
+source /etc/profile
+
+DEPLOY_TARGET_DEVICES=()
 NOT_DEPLOYED_HOST=()
 NOT_INSTALLED_HOST=()
+NOT_DEPLOYED_DEVICES=()
+NOT_INSTALLED_DEVICES=()
+
+# 'Deploy & Install' step 시작시 슬랙 메세지 전송
+deploy_target_vpn_ips=`cat .tailscale-ip`
+DEPLOY_TARGET_DEVICES=`vpn_ip_to_device_id $deploy_target_vpn_ips`
+deploy_start_message="\`info\` 배포가 시작됩니다. 배포 작업 종료시까지 아래 장비들에 접속이 금지됩니다.
+	Device: `echo ${DEPLOY_TARGET_DEVICES[@]}| sed 's/ /\,  /g'`"
+
+slackboy send --message "${deploy_start_message}" --channel "${SLACK_CHANNEL}" > /dev/null
+
 for HOST in `cat .tailscale-ip`
 do
 	echo "hostname: $HOST"
@@ -88,15 +114,17 @@ done
 
 if [[ -z ${NOT_DEPLOYED_HOST} && -z ${NOT_INSTALLED_HOST} ]]
 then
-	deploy_result_message="Deploy와 Install에 모두 성공하였습니다"
+	deploy_result_message="\`info\`Deploy와 Install에 모두 성공하였습니다."
 	exitcode=0
 else
-	deploy_result_message="Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다  
-		Deploy: ${NOT_DEPLOYED_HOST[@]}  
-		Install: ${NOT_INSTALLED_HOST[@]}"
+	NOT_DEPLOYED_DEVICES=`vpn_ip_to_device_id ${NOT_DEPLOYED_HOST[@]}`
+	NOT_INSTALLED_DEVICES=`vpn_ip_to_device_id ${NOT_INSTALLED_HOST[@]}`
+
+	deploy_result_message="\`error\`Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다.
+	Deploy: `echo ${NOT_DEPLOYED_DEVICES[@]} | sed 's/ /\,  /g'`
+	Install: `echo ${NOT_INSTALLED_DEVICES[@]} | sed 's/ /\,  /g'`"
 	exitcode=1
 fi
-source /etc/profile
-slackboy send --message “${deploy_result_message}” --channel ${SLACK_CHANNEL}
+slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} > /dev/null
 
 exit $exitcode
