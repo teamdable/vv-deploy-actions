@@ -8,7 +8,7 @@ set process_name [lindex $argv 4]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; start-${process_name}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile;export PYENV_ROOT="$HOME/.pyenv";export PATH="$PYENV_ROOT/bin:$PATH";start-${process_name}"
 expect {
         "Password:" {
                 send "${password}\n"
