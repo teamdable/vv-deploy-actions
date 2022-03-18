@@ -29,32 +29,18 @@ on:
         required: false
         type: string
     secrets:
-      tailscale-authkey:
-        description: tailscale authkey to add runner to the tailnet
-        required: true
       password:
         description: edge device password
         required: true
       otp:
         description: edge device otp
         required: true
-      extra-index-url:
-        description: private pypi index url
-        required: true
-      trusted-host:
-        description: private pypi trusted host
-        required: true
 
 jobs:
   deploy-and-install:
     name: deploy-and-install
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     steps:
-      - name: Add runner to the tailnet
-        uses: tailscale/github-action@v1
-        with:
-          authkey: ${{ secrets.tailscale-authkey }}
-      
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
 
@@ -63,20 +49,15 @@ jobs:
         with:
           repository: teamdable/vv-deploy-actions
           path: action/
-      
-      - name: Setup python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
 
       - name: Install python packages for api call
         run: |
-          python3 -m pip install --upgrade pip
-          pip install -r action/requirements.txt --extra-index-url ${{ secrets.extra-index-url }} --trusted-host ${{ secrets.trusted-host }}
+          python -m pip install --upgrade pip
+          pip install -r action/requirements.txt
 
       - name: Get VPN IP of deploy-target devices
         run: | 
-          python3 action/get-vpn-ip
+          action/get-vpn-ip
 
       - name: Build
         run: |
@@ -90,5 +71,5 @@ jobs:
 
       - name: Deploy & Install
         run: |
-          sudo apt-get install expect oathtool
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-to-edge-devices.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ env.ZIP_FILE_NAME }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} 
