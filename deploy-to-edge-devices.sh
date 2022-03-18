@@ -6,6 +6,7 @@ ZIP_FILE_NAME=$4
 PARENT_DIR=$5
 CODE_NAME=$6
 VERSION_FILE=$7
+SLACK_CHANNEL=$8
 
 NOT_DEPLOYED_HOST=()
 NOT_INSTALLED_HOST=()
@@ -46,10 +47,15 @@ done
 
 if [[ -z ${NOT_DEPLOYED_HOST} && -z ${NOT_INSTALLED_HOST} ]]
 then
-	echo "Deploy와 Install에 모두 성공하였습니다"
+	deploy_result_message="Deploy와 Install에 모두 성공하였습니다"
+	exitcode=0
 else
-	echo "Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다"
-	echo "Deploy: ${NOT_DEPLOYED_HOST[@]}"
-	echo "Install: ${NOT_INSTALLED_HOST[@]}"
-	exit 1
+	deploy_result_message="Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다  
+		Deploy: ${NOT_DEPLOYED_HOST[@]}  
+		Install: ${NOT_INSTALLED_HOST[@]}"
+	exitcode=1
 fi
+source /etc/profile
+slackboy send --message “${deploy_result_message}” --channel ${SLACK_CHANNEL}
+
+exit $exitcode

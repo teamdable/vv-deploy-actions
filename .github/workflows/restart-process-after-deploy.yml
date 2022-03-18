@@ -11,6 +11,10 @@ on:
         description: process name 
         required: true
         type: string
+      slack-channel:
+        description: after restart, send message to this slack channle
+        required: true
+        type: string
     secrets:
       password:
         description: edge device password
@@ -45,4 +49,4 @@ jobs:
       - name: Kill and Start process
         run: |
           sudo apt-get install expect oathtool
-          action/restart-process-after-deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }}
+          action/restart-process-after-deploy.sh ${{ inputs.user }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-name }} ${{ inputs.slack-channel }}
