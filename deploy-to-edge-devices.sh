@@ -100,7 +100,6 @@ do
 		sleep 10
 		# 2-2. install check 
 		action/install-check.exp $USER $HOST $PASSWORD $OTP $PARENT_DIR $CODE_NAME $VERSION_FILE > version_check_$HOST.txt
-		sleep 10
 		action/install-check.sh --host $HOST --version-file $VERSION_FILE
 		result=$?
 
