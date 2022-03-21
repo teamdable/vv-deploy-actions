@@ -55,7 +55,7 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 	    parent-dir: '$PARENT_DIR'
 	    version-file-name: '$VERSION_FILE'
 	    exclude-files-from-zip: '$EXCLUDE_FILE'
-		slack-channel: '$SLACK_CHANNEL'
+	    slack-channel: '$SLACK_CHANNEL'
 	  secrets:
 	    password: ${{ secrets.PASSWORD }}
 	    otp: ${{ secrets.OTP }}
