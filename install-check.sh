@@ -1,6 +1,29 @@
 #!/bin/bash
-HOST=$1
-VERSION_FILE=$2
+LONG=host:,version-file:
+OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
+[ $? -eq 0 ] || {
+    echo "인자전달이 잘못되었습니다. "
+    exit 1
+}
+eval set -- "$OPTS"
+
+while [[ $# -gt 0 ]]
+do
+	case "$1" in
+	--host)
+		HOST=$2
+		shift 2
+		;;
+	--version-file)
+		VERSION_FILE=$2
+		shift 2
+		;;
+	--)
+		shift
+		break
+		;;
+	esac
+done
 
 extract_version() {
 	local check_file=$1
@@ -11,7 +34,7 @@ extract_version() {
 		echo "배포 대상 edge device의 version 파일을 읽어올 수 없습니다."
 		exit 1
 	fi
-	version=`echo $raw_version_data | sed 's/[^abrc0-9.]//g'`
+	version=`echo $raw_version_data | grep -Eo "[0-9]\.[0-9]\.[0-9](a|b|rc)*[0-9]*"`
 	echo $version
 }
 
