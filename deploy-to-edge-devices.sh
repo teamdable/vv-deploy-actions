@@ -124,6 +124,7 @@ else
 	Install: `echo ${NOT_INSTALLED_DEVICES[@]} | sed 's/ /\,  /g'`"
 	exitcode=1
 fi
+echo $deploy_result_message
 slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} > /dev/null
 
 exit $exitcode
