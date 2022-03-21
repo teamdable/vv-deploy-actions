@@ -26,14 +26,11 @@ e.g. `/home/${user}`
 e.g.  _version.py or .version
 - `exclude-files-from-zip` - 소스코드 압축파일에서 제외한 파일들 이름 \
 e.g. \_\_pycache\_\_/*
-
+- `slack-channel` - deploy & install 스텝의 시작/완료 시 알람을 보낼 슬랙 채널
 
 #### Secrets Variables
-- `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
 - `otp` - otp 생성기 설정번호
-- `extra-index-url` - private pip 서버 index url
-- `trusted-host` - private pip 서버 host
 
 -------------------------------
 
@@ -58,26 +55,13 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 	    parent-dir: '$PARENT_DIR'
 	    version-file-name: '$VERSION_FILE'
 	    exclude-files-from-zip: '$EXCLUDE_FILE'
+		slack-channel: '$SLACK_CHANNEL'
 	  secrets:
-	    tailscale-authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 	    password: ${{ secrets.PASSWORD }}
 	    otp: ${{ secrets.OTP }}
-	    extra-index-url: ${{ secrets.EXTRA_INDEX_URL }}
-	    trusted-host: ${{ secrets.TRUSTED_HOST }}
 	```
 
 	output: 
-	<details>
-	<summary>Add runner to the tailnet</summary>
-
-	- Success
-		```
-		Success.
-		```
-
-	- Fail: 정상적으로 tailscale authkey가 전달되지않았거나, key가 expire된 경우에는 이 step에서 종료됩니다.
-	</details>
-
 	<details>
 	<summary>Build</summary>
 
@@ -107,9 +91,7 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 		build & deploy Success
 		install Success
 
-		Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다
-		Deploy: 
-		Install:
+		Deploy와 Install에 모두 성공하였습니다
 		```
 
 	- Fail: 모든 HOST에 배포를 진행하고, 과정이 완료된 후에 하나라도 배포가 실패했을 시에 Actions가 실패합니다.
@@ -120,7 +102,7 @@ vv-deploy-actions의 reusable workflow를 활용할 때, 별도의 clone, instal
 		[err] target version과 source version이 일치하지않습니다
 
 		hostname: 127.0.0.3
-		[err] 배포 대상 edge device에 deploy 작업이 제대로 루어지지않았습니다
+		[err] 배포 대상 edge device에 deploy 작업이 제대로 이루어지지않았습니다
 
 		Deploy와 Install에 실패한 기기들의 hostname은 다음과 습니다
 		Deploy: 127.0.0.3
@@ -144,12 +126,10 @@ with:
 !   version-file-name: '_version.py'
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
 +   exclude-files-from-zip: 'bin/deploy/vpn-config.ini __pycache__/*'
+!   slack-channel: 'general'
 secrets:
-    tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
     password: ${{ secrets.PASSWORD }}
     otp: ${{ secrets.OTP }}
-    extra-index-url: ${{ github.event.inputs.extra-index-url }}
-    trusted-host: ${{ github.event.inputs.trusted-host }}
 ```
 
 #### 2. inference 모듈을 배포대상 장비의 ~/inference 위치에 배포
@@ -166,12 +146,10 @@ with:
 !   version-file-name: '_version.py'
 -   exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
 +   
+!   slack-channel: 'general'
 secrets:
-    tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
     password: ${{ secrets.PASSWORD }}
     otp: ${{ secrets.OTP }}
-    extra-index-url: ${{ github.event.inputs.extra-index-url }}
-    trusted-host: ${{ github.event.inputs.trusted-host }}
 ```
 
 -------------------------------
@@ -183,14 +161,11 @@ secrets:
 - `user` - edge device의 사용자 이름
 - `process-name` - 실행하고자하는 프로세스 이름 \
 e.g. inference, edge-player, process-monitoring, resource-monitoring
-
+- `slack-channel` - 프로세스 재시작 스텝 완료 시 알람을 보낼 슬랙 채널
 
 #### Secrets Variables
-- `tailscale-authkey` - tailnet에 github runner를 node로 추가하기 위한 tailscale authkey
 - `password` - edge device의 비밀번호
 - `otp` - otp 생성기 설정번호
-- `extra-index-url` - private pip 서버 index url
-- `trusted-host` - private pip 서버 host
 
 -------------------------------
 
@@ -202,10 +177,6 @@ name: Restart After Deployment
 on:
   # manually trigger
   workflow_dispatch:
-    inputs:
-      tailscale-key:
-        description: 'tailscale ephemeral key'
-        required: true
 
 jobs:
   restart-process-in-edge:
@@ -213,10 +184,8 @@ jobs:
     with:
       user: 'ubuntu'
 !     process-name: 'inference'
+!     slack-channel: 'general'
     secrets:
-      tailscale-authkey: ${{ github.event.inputs.tailscale-key }}
       password: ${{ secrets.PASSWORD }}
       otp: ${{ secrets.OTP }}
-      extra-index-url: ${{ github.event.inputs.extra-index-url }}
-      trusted-host: ${{ github.event.inputs.trusted-host }}
 ```

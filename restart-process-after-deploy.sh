@@ -73,6 +73,8 @@ else
 		Start: ${NOT_STARTED_HOST[@]}"
 	exitcode=1
 fi
+echo $deploy_result_message
+
 source /etc/profile
 slackboy send --message “${deploy_result_message}” --channel ${SLACK_CHANNEL}
 
