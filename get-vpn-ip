@@ -5,7 +5,7 @@ from typing import List
 from pathlib import Path
 
 import vv_configargparse
-from vv_edge_info.edge_info import get_edge_info_df
+from vv_edge_info.edge_info import get_edge_info
 
 
 def change_working_directory():
@@ -26,10 +26,10 @@ def main(include_api_live_inventory: bool,
          exclude_devices: List,
          exclude_inventory_id: List):
 
-    edge_info = get_edge_info_df(include_api_live_inventory = include_api_live_inventory,
+    edge_info = get_edge_info(include_api_live_inventory = include_api_live_inventory,
                                  allow_devices = allow_devices,
                                  exclude_devices = exclude_devices,
-                                 exclude_inventory_id = exclude_inventory_id)
+                                 exclude_inventory_id = exclude_inventory_id).to_df()
 
     deploy_vpn_ips = []
     deploy_vpn_ips.extend(edge_info.vpn_ip.values)
