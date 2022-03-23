@@ -80,8 +80,8 @@ then
 	deploy_result_message="모든 기기의 $PROCESS_NAME 재시작을 성공하였습니다"
   exitcode=0
 else
-  NOT_KILLED_DEVICES=`vpn_ip_to_device_id ${NOT_DEPLOYED_HOST[@]}`
-  NOT_STARTED_DEVICES=`vpn_ip_to_device_id ${NOT_INSTALLED_HOST[@]}`
+  NOT_KILLED_DEVICES=`vpn_ip_to_device_id ${NOT_KILLED_HOST[@]}`
+  NOT_STARTED_DEVICES=`vpn_ip_to_device_id ${NOT_STARTED_HOST[@]}`
   deploy_result_message="Kill, Start $PROCESS_NAME 명령에 실패한 기기의 디바이스는 다음과 같습니다
 		Kill: ${NOT_KILLED_DEVICES[@]}
 		Start: ${NOT_STARTED_DEVICES[@]}"
