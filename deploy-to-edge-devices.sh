@@ -119,7 +119,7 @@ else
 	NOT_DEPLOYED_DEVICES=`vpn_ip_to_device_id ${NOT_DEPLOYED_HOST[@]}`
 	NOT_INSTALLED_DEVICES=`vpn_ip_to_device_id ${NOT_INSTALLED_HOST[@]}`
 
-	deploy_result_message="\`error\`Deploy와 Install에 실패한 기기들의 hostname은 다음과 같습니다.
+	deploy_result_message="\`error\`Deploy와 Install에 실패한 기기들의 디바이스는 다음과 같습니다.
 	Deploy: `echo ${NOT_DEPLOYED_DEVICES[@]} | sed 's/ /\,  /g'`
 	Install: `echo ${NOT_INSTALLED_DEVICES[@]} | sed 's/ /\,  /g'`"
 	exitcode=1
