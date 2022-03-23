@@ -24,9 +24,6 @@ expect {
 expect "${user}" {
             send ". /etc/profile\n"
              }
-expect "${user}" {
-            send "pyenv activate ${process_name}\n"
-             }
 set timeout 5
 expect "${user}" {
             send "start-${process_name}\n"
