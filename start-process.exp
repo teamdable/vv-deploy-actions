@@ -8,9 +8,10 @@ set process_name [lindex $argv 4]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; start-${process_name}"
+set HOME "/home/${user}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname}
 expect {
-        "Password:" {
+        "assword:" {
                 send "${password}\n"
                 exp_continue
         }
@@ -18,7 +19,16 @@ expect {
                 send "${otp_code}\n"
                 exp_continue
         }
-        eof
     }
+
+expect "${user}" {
+            send ". /etc/profile\n"
+             }
+set timeout 5
+expect "${user}" {
+            send "start-${process_name}\n"
+            send "exit_code=$?\n"
+            send "exit \$exit_code\n"
+             }
 catch wait result
 exit [lindex $result 3]

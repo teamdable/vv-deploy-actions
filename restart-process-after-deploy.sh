@@ -37,6 +37,18 @@ do
 	esac
 done
 
+vpn_ip_to_device_id() {
+	TARGET_HOSTS_VPN_IP=$@
+
+	TARGET_DEVICES_ID=()
+	for HOST in $TARGET_HOSTS_VPN_IP
+	do
+		DEVICE_ID=`edge-info-search --query vpn_ip==$HOST -c device_id`
+		TARGET_DEVICES_ID+=( $DEVICE_ID )
+	done
+	echo ${TARGET_DEVICES_ID[@]}
+}
+
 NOT_KILLED_HOST=()
 NOT_STARTED_HOST=()
 for HOST in `cat .tailscale-ip`
@@ -65,17 +77,19 @@ done
 
 if [[ -z ${NOT_KILLED_HOST} && -z ${NOT_STARTED_HOST} ]]
 then
-	deploy_result_message="모든 기기의 $CODE_NAME 재시작을 성공하였습니다"
+	deploy_result_message="모든 기기의 $PROCESS_NAME 재시작을 성공하였습니다"
   exitcode=0
 else
-  deploy_result_message="Kill, Start 프로세스에 실패한 기기의 hostname은 다음과 같습니다  
-		Kill: ${NOT_KILLED_HOST[@]}  
-		Start: ${NOT_STARTED_HOST[@]}"
+  NOT_KILLED_DEVICES=`vpn_ip_to_device_id ${NOT_KILLED_HOST[@]}`
+  NOT_STARTED_DEVICES=`vpn_ip_to_device_id ${NOT_STARTED_HOST[@]}`
+  deploy_result_message="Kill, Start $PROCESS_NAME 명령에 실패한 기기의 디바이스는 다음과 같습니다
+		Kill: ${NOT_KILLED_DEVICES[@]}
+		Start: ${NOT_STARTED_DEVICES[@]}"
 	exitcode=1
 fi
 echo $deploy_result_message
 
 source /etc/profile
-slackboy send --message “${deploy_result_message}” --channel ${SLACK_CHANNEL}
+slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix CD-restart-process
 
 exit $exitcode
