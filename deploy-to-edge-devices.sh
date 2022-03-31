@@ -72,10 +72,10 @@ NOT_INSTALLED_DEVICES=()
 # 'Deploy & Install' step 시작시 슬랙 메세지 전송
 deploy_target_vpn_ips=`cat .tailscale-ip`
 DEPLOY_TARGET_DEVICES=`vpn_ip_to_device_id $deploy_target_vpn_ips`
-deploy_start_message="\`info\` $CODE_NAME 배포가 시작됩니다. 배포 작업 종료시까지 아래 장비들에 접속이 금지됩니다.
+deploy_start_message="$CODE_NAME 배포가 시작됩니다. 배포 작업 종료시까지 아래 장비들에 접속이 금지됩니다.
 	Device: `echo ${DEPLOY_TARGET_DEVICES[@]}| sed 's/ /\,  /g'`"
 
-slackboy send --message "${deploy_start_message}" --channel "${SLACK_CHANNEL}" > /dev/null
+slackboy send --message "${deploy_start_message}" --channel "${SLACK_CHANNEL}" --prefix "deploy-process" > /dev/null
 
 for HOST in `cat .tailscale-ip`
 do
@@ -113,7 +113,7 @@ done
 
 if [[ -z ${NOT_DEPLOYED_HOST} && -z ${NOT_INSTALLED_HOST} ]]
 then
-	deploy_result_message="\`info\` $CODE_NAME의 Deploy와 Install에 모두 성공하였습니다."
+	deploy_result_message="$CODE_NAME의 Deploy와 Install에 모두 성공하였습니다."
 	exitcode=0
 else
 	NOT_DEPLOYED_DEVICES=`vpn_ip_to_device_id ${NOT_DEPLOYED_HOST[@]}`
@@ -125,6 +125,6 @@ else
 	exitcode=1
 fi
 echo $deploy_result_message
-slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} > /dev/null
+slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix "deploy-process" > /dev/null
 
 exit $exitcode
