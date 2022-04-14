@@ -34,8 +34,7 @@ extract_version() {
 		echo "배포 대상 edge device의 version 파일을 읽어올 수 없습니다."
 		exit 1
 	fi
-	echo $raw_version_data | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*" > only-version
-	version=`cat only-version`
+	version=`$raw_version_data | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*"`
 	echo $version
 }
 
@@ -51,6 +50,7 @@ else
 fi
 source_version=`extract_version $VERSION_FILE`
 target_version=`extract_version version_check_$HOST.txt`
+echo $target_version > only-version
 echo "source version: $source_version, target version: $target_version"
 
 if [[ $source_version == $target_version ]]
