@@ -34,7 +34,8 @@ extract_version() {
 		echo "배포 대상 edge device의 version 파일을 읽어올 수 없습니다."
 		exit 1
 	fi
-	version=`echo $raw_version_data | grep -Eo "[0-9]\.[0-9]\.[0-9](a|b|rc)*[0-9]*"`
+	echo $raw_version_data | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*" > only-version
+	version=`cat only-version`
 	echo $version
 }
 
