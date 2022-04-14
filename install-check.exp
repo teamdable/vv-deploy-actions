@@ -12,7 +12,7 @@ set otp_code [exec oathtool --totp -b ${otp}]
 set timeout 200
 spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} cat ${parent_dir}/${code_name}/${version_file}
 expect {
-        "Password:" {
+        "assword:" {
                 send "${password}\n"
                 exp_continue
         }
