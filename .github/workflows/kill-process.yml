@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       slack-channel:
-        description: after restart, send message to this slack channle
+        description: after restart, send message to this slack channel
         required: true
         type: string
     secrets:
@@ -44,4 +44,4 @@ jobs:
       - name: Kill process
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/kill-process.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+          action/kill-process.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }} --slack-channel ${{ inputs.slack-channel }}

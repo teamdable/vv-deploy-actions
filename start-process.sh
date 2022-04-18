@@ -37,7 +37,6 @@ do
 	esac
 done
 
-
 vpn_ip_to_device_id() {
 	TARGET_HOSTS_VPN_IP=$1
   DEVICE_ID=$(edge-info-search --query vpn_ip=="$TARGET_HOSTS_VPN_IP" -c device_id)
@@ -48,21 +47,21 @@ for HOST in $(cat .tailscale-ip)
 do
 	echo "hostname: $HOST"
 
-  # 프로세스 끄기
-  action/kill-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
-  kill_result=$?
+  # 프로세스 켜기
+  action/start-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
+  start_result=$?
   echo -e "\n"
 
 done
 
 # 결과 메세지 처리
 DEVICE_ID=$(vpn_ip_to_device_id "${HOST}")
-if [[ $kill_result == 0 ]]
+if [[ $start_result == 0 ]]
 then
-  deploy_result_message="DEVICE $DEVICE_ID 의 $PROCESS_NAME 종료에 성공했습니다"
+  deploy_result_message="DEVICE $DEVICE_ID 의 $PROCESS_NAME 시작에 성공했습니다"
   exitcode=0
 else
-  deploy_result_message="DEVICE $DEVICE_ID 의 $PROCESS_NAME 종료에 실패했습니다"
+  deploy_result_message="DEVICE $DEVICE_ID 의 $PROCESS_NAME 시작에 실패했습니다"
   exitcode=1
 fi
 echo "$deploy_result_message"
@@ -70,6 +69,6 @@ echo "$deploy_result_message"
 if [[ -n $SLACK_CHANNEL ]]
 then
   source /etc/profile
-  slackboy send --message "${deploy_result_message}" --channel "${SLACK_CHANNEL}" --prefix cd-kill-process
+  slackboy send --message "${deploy_result_message}" --channel "${SLACK_CHANNEL}" --prefix cd-start-process
 fi
 exit $exitcode

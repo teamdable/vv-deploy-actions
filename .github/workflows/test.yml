@@ -1,0 +1,17 @@
+name: test-process
+
+on:
+  workflow_call:
+    inputs:
+      deploy-target-device:
+        description: "배포 대상이 되는 디바이스"
+        required: true
+        type: string
+
+
+jobs:
+  just-print:
+    name:   print
+    runs-on: self-hosted
+    steps:
+      - run: echo ${{inputs.deploy-target-device}}}
