@@ -13,7 +13,7 @@ def change_working_directory():
     os.chdir(filepath)
 
 
-def write_list_to_files(input_list: List[str]) -> str:
+def write_list_to_files(input_list: List[str]):
     if os.path.isfile('.tailscale-ip'):
         os.remove('.tailscale-ip')
     for i in input_list:
@@ -24,18 +24,21 @@ def write_list_to_files(input_list: List[str]) -> str:
 def main(include_api_live_inventory: bool,
          allow_devices: List,
          exclude_devices: List,
-         exclude_inventory_id: List):
+         exclude_inventory_id: List,
+         verbose: bool = False):
 
-    edge_info = get_edge_info(include_api_live_inventory = include_api_live_inventory,
-                                 allow_devices = allow_devices,
-                                 exclude_devices = exclude_devices,
-                                 exclude_inventory_id = exclude_inventory_id).to_df()
+    edge_info = get_edge_info(include_api_live_inventory=include_api_live_inventory,
+                              allow_devices=allow_devices,
+                              exclude_devices=exclude_devices,
+                              exclude_inventory_id=exclude_inventory_id).to_df()
 
     deploy_vpn_ips = []
     deploy_vpn_ips.extend(edge_info.vpn_ip.values)
 
     if not deploy_vpn_ips:
         raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
+    if verbose:
+        print(deploy_vpn_ips)
 
     write_list_to_files(deploy_vpn_ips)
 
@@ -55,12 +58,15 @@ if __name__ == '__main__':
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
+    parser.add_argument('-v', '--verbose', action="store_true",
+                        help='결과를 stdout 으로 보여준다')
     args = parser.parse_args()
     try:
-        main(include_api_live_inventory = args.include_api_live_inventory,
-             allow_devices = args.allow_devices,
-             exclude_devices = args.exclude_devices,
-             exclude_inventory_id = args.exclude_inventory_id)
+        main(include_api_live_inventory=args.include_api_live_inventory,
+             allow_devices=args.allow_devices,
+             exclude_devices=args.exclude_devices,
+             exclude_inventory_id=args.exclude_inventory_id,
+             verbose=args.verbose)
 
     except Exception as e:
         raise e

@@ -7,14 +7,49 @@ on:
         description: "배포 대상이 되는 디바이스"
         required: true
         type: string
-
+      user:
+        description: edge device username
+        required: true
+        type: string
+      code-name:
+        description: code module name
+        required: true
+        type: string
+      deploy-branch:
+        description: branch to be deployed
+        default: main
+        required: false
+        type: string
+      parent-dir:
+        description: code directory of the edge device
+        required: true
+        type: string
+      version-file-name:
+        description: _version_.py or .version
+        required: true
+        type: string
+      exclude-files-from-zip:
+        description: files that you want to delete from zip
+        required: false
+        type: string
+      slack-channel:
+        description: after deploy & install, send message to this slack channel
+        required: true
+        type: string
+    secrets:
+      password:
+        description: edge device password
+        required: true
+      otp:
+        description: edge device otp
+        required: true
 
 jobs:
   Checkout-repository:
     name: checkout and get vpn ip
     runs-on: self-hosted
     outputs:
-      vpn_ips: ${{ steps.convert_device_to_vpn.outputs }}
+      vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
     steps:
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
@@ -28,8 +63,9 @@ jobs:
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
-          action/get-vpn-ip --allow-device ${{ inputs.deploy-target-device }}
-          cat .tailscale-ip
+          VPN_IP_ARR=($(action/get-vpn-ip --allow-devices ${{ inputs.deploy-target-device }} --verbose | tr -d '[],'))
+          echo ${VPN_IP_ARR[@]}
+          echo "::set-output name=vpn_ips::${VPN_IP_ARR[@]}"
 
   Build-deploy-file:
     name: preparing for build file
@@ -46,12 +82,18 @@ jobs:
           zip --delete $zip_file_name ".github/*" ".gitignore"
           if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
 
-#  Deployment-to-each-device:
-#    name: deploy to each device
-#    runs-on: self-hosted
-#    needs: Build-deploy-file
-#    steps:
-#      - name: Deployment
-#        run: |
-#          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-#          action/deploy-to-edge-devices-test.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ env.ZIP_FILE_NAME }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }} --slack-channel ${{ inputs.slack-channel }}
+  Deployment-to-each-device:
+    name: deploy to each device
+    runs-on: self-hosted
+    needs: Build-deploy-file
+#    strategy:
+#      matrix:
+#        vpn_ip: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips }}
+#     ${{ needs.Checkout-repository.outputs.vpn_ips }}
+
+    steps:
+      - name: Deployment
+        run: |
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          echo ${{ needs.Checkout-repository.outputs.vpn_ips }}
+#          action/deploy-to-each-device.sh --vpn_ip ${{ needs.Checkout-repository.outputs.vpn_ips }}
