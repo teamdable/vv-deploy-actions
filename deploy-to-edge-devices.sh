@@ -106,6 +106,8 @@ do
 		if [[ $result -eq 1 ]]
 		then
 			NOT_INSTALLED_HOST+=( $HOST )
+		else
+			action/update-version.sh --code-name $CODE_NAME
 		fi
 	fi
 	echo -e "\n"
