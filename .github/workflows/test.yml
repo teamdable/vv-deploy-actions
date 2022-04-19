@@ -10,8 +10,24 @@ on:
 
 
 jobs:
-  just-print:
-    name:   print
+  Split-target-device-into-array:
+    name: make target device string array
     runs-on: self-hosted
+#    outputs:
+#      device_arr: ${{ steps.split.outputs.test }}
+#    steps:
+#      - id: split
+#      - run: IFS=','; DeviceArr=(${{inputs.deploy-target-device}}); unset IFS; echo
     steps:
-      - run: echo ${{inputs.deploy-target-device}}}
+      - name: Checkout the deploy-target repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the action repository
+        uses: actions/checkout@v2
+        with:
+          repository: teamdable/vv-deploy-actions
+          path: action/
+
+      - name: Get VPN IP of deploy-target devices
+        run: |
+          action/get-vpn-ip --allow-device ${{ inputs.deploy-target-device }}
