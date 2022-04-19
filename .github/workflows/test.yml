@@ -10,14 +10,11 @@ on:
 
 
 jobs:
-  Split-target-device-into-array:
-    name: make target device string array
+  Checkout-repository:
+    name: checkout and get vpn ip
     runs-on: self-hosted
-#    outputs:
-#      device_arr: ${{ steps.split.outputs.test }}
-#    steps:
-#      - id: split
-#      - run: IFS=','; DeviceArr=(${{inputs.deploy-target-device}}); unset IFS; echo
+    outputs:
+      vpn_ips: ${{ steps.convert_device_to_vpn.outputs }}
     steps:
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
@@ -29,5 +26,32 @@ jobs:
           path: action/
 
       - name: Get VPN IP of deploy-target devices
+        id: convert_device_to_vpn
         run: |
           action/get-vpn-ip --allow-device ${{ inputs.deploy-target-device }}
+          cat .tailscale-ip
+
+  Build-deploy-file:
+    name: preparing for build file
+    runs-on: self-hosted
+    needs: Checkout-repository
+    steps:
+      - name: Build
+        run: |
+          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
+          zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
+          echo "ZIP_FILE_NAME=$zip_file_name" >> $GITHUB_ENV
+
+          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
+          zip --delete $zip_file_name ".github/*" ".gitignore"
+          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
+
+#  Deployment-to-each-device:
+#    name: deploy to each device
+#    runs-on: self-hosted
+#    needs: Build-deploy-file
+#    steps:
+#      - name: Deployment
+#        run: |
+#          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+#          action/deploy-to-edge-devices-test.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ env.ZIP_FILE_NAME }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }} --slack-channel ${{ inputs.slack-channel }}
