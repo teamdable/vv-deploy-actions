@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LONG=vpn-ip:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:
+LONG=vpn-ip:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:,process-name:
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
     echo "인자전달이 잘못되었습니다. "
@@ -43,6 +43,10 @@ do
 		VERSION_FILE=$2
 		shift 2
 		;;
+  --process-name)
+    PROCESS_NAME=$2
+    shift 2
+    ;;
 #	--slack-channel)
 #		SLACK_CHANNEL=$2
 #		shift 2
@@ -70,7 +74,16 @@ deploy_result=$?
 
 if [[ $deploy_result -eq 1 ]]
 then
-  echo "1단계 deploy 작업에 실패했습니다"
+  echo "1단계 전송작업에 실패했습니다"
+  exit 1
+fi
+
+#  프로세스 끄기
+action/kill-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
+result=$?
+if [[ $result -gt 0 ]]
+then
+  echo "2단계 프로세스종료 작업에 실패했습니다"
   exit 1
 fi
 
@@ -84,19 +97,19 @@ install_result=$?
 
 if [[ $install_result -eq 1 ]]
 then
-  echo "2단계 install 작업에 실패했습니다"
+  echo "3단계 install 작업에 실패했습니다"
+  exit 1
+fi
+
+# 프로세스 시작
+action/start-process.exp $USER $HOST $PASSWORD $OTP $PROCESS_NAME
+result=$?
+if [[ $result -gt 0 ]]
+then
+  echo "4단계 프로세스 실행 작업에 실패했습니다"
   exit 1
 fi
 
 echo -e "\n"
-echo "deploy, install 작업에 모두 성공했습니다"
+echo "모든 배포작업이 성공했습니다"
 exit 0
-
-
-# kill
-
-# deploy
-
-# start
-
-# exitcode
