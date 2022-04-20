@@ -85,15 +85,13 @@ jobs:
   Deployment-to-each-device:
     name: deploy to each device
     runs-on: self-hosted
-    needs: Build-deploy-file
-#    strategy:
-#      matrix:
-#        vpn_ip: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips }}
-#     ${{ needs.Checkout-repository.outputs.vpn_ips }}
+    needs: [Checkout-repository, Build-deploy-file]
+    strategy:
+      matrix:
+        vpn_ip: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips }}
 
     steps:
       - name: Deployment
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          echo ${{ needs.Checkout-repository.outputs.vpn_ips }}
-#          action/deploy-to-each-device.sh --vpn_ip ${{ needs.Checkout-repository.outputs.vpn_ips }}
+          action/deploy-to-each-device.sh --vpn_ip ${{ matrix.vpn_ip }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ env.ZIP_FILE_NAME }}
