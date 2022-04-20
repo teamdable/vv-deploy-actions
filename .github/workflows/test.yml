@@ -96,6 +96,7 @@ jobs:
     strategy:
       matrix:
         vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+      fail-fast: false
 
     steps:
       - name: Deployment
