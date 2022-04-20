@@ -63,20 +63,23 @@ jobs:
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
-          VPN_IP_ARR=($(action/get-vpn-ip --allow-devices ${{ inputs.deploy-target-device }} --verbose | tr -d '[],'))
-          echo ${VPN_IP_ARR[@]}
-          echo "::set-output name=vpn_ips::${VPN_IP_ARR[@]}"
+          VPN_IP_JSON=$(action/get-vpn-ip --allow-devices ${{ inputs.deploy-target-device }} --stdout-json )
+          echo $VPN_IP_JSON
+          echo "::set-output name=vpn_ips::$VPN_IP_JSON"
 
   Build-deploy-file:
     name: preparing for build file
     runs-on: self-hosted
     needs: Checkout-repository
+    outputs:
+      zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
     steps:
       - name: Build
+        id: build_deploy_code
         run: |
           suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
           zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
-          echo "ZIP_FILE_NAME=$zip_file_name" >> $GITHUB_ENV
+          echo "::set-output name=zip_file_name::$zip_file_name" 
 
           git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
           zip --delete $zip_file_name ".github/*" ".gitignore"
@@ -88,10 +91,10 @@ jobs:
     needs: [Checkout-repository, Build-deploy-file]
     strategy:
       matrix:
-        vpn_ip: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips }}
+        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
 
     steps:
       - name: Deployment
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-to-each-device.sh --vpn_ip ${{ matrix.vpn_ip }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ env.ZIP_FILE_NAME }}
+          action/deploy-to-each-device.sh --vpn-ip ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}

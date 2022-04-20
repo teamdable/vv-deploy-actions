@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 인자받는 부분
-LONG=vpn_ip:
+LONG=vpn-ip:,user:,password:,otp:,zip-file-name:
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
     echo "인자전달이 잘못되었습니다. "
@@ -12,7 +12,7 @@ eval set -- "$OPTS"
 while [[ $# -gt 0 ]]
 do
 	case "$1" in
-	--vpn_ip)
+	--vpn-ip)
 		VPN_IP=$2
 		shift 2
 		;;
@@ -59,10 +59,9 @@ echo "$VPN_IP"
 
 # /tmp 디렉토리 scp 전달 + unzip
 
-echo "hostname: $HOST"
+echo "hostname: $VPN_IP"
 
-	# 1. deploy - scp로 zip 패키지 전송
-	action/deploy.exp $USER $VPN_IP $PASSWORD $OTP $ZIP_FILE_NAME > /dev/null
+action/deploy.exp "$USER" "$VPN_IP" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" > /dev/null
 # kill
 
 # deploy

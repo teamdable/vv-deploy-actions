@@ -3,6 +3,7 @@
 import os
 from typing import List
 from pathlib import Path
+import json
 
 import vv_configargparse
 from vv_edge_info.edge_info import get_edge_info
@@ -25,7 +26,7 @@ def main(include_api_live_inventory: bool,
          allow_devices: List,
          exclude_devices: List,
          exclude_inventory_id: List,
-         verbose: bool = False):
+         stdout_json: bool = False):
 
     edge_info = get_edge_info(include_api_live_inventory=include_api_live_inventory,
                               allow_devices=allow_devices,
@@ -37,8 +38,14 @@ def main(include_api_live_inventory: bool,
 
     if not deploy_vpn_ips:
         raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
-    if verbose:
-        print(deploy_vpn_ips)
+    if stdout_json:
+        # json_list = []
+        # for each_ip in deploy_vpn_ips:
+        #     each_record = {'vpn_ips': each_ip}
+        #     json_list.append(each_record)
+        # vpn_json = json.dumps(json_list)
+        vpn_json = json.dumps(deploy_vpn_ips)
+        print(vpn_json)
 
     write_list_to_files(deploy_vpn_ips)
 
@@ -58,7 +65,7 @@ if __name__ == '__main__':
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
-    parser.add_argument('-v', '--verbose', action="store_true",
+    parser.add_argument('--stdout-json', action="store_true",
                         help='결과를 stdout 으로 보여준다')
     args = parser.parse_args()
     try:
@@ -66,7 +73,7 @@ if __name__ == '__main__':
              allow_devices=args.allow_devices,
              exclude_devices=args.exclude_devices,
              exclude_inventory_id=args.exclude_inventory_id,
-             verbose=args.verbose)
+             stdout_json=args.stdout_json)
 
     except Exception as e:
         raise e
