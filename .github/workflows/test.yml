@@ -97,4 +97,4 @@ jobs:
       - name: Deployment
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-to-each-device.sh --vpn-ip ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+          action/deploy-to-each-device.sh --vpn-ip ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }}

@@ -28,7 +28,7 @@ done
 extract_version() {
 	local check_file=$1
 	
-	raw_version_data=`grep $version_key_string $check_file`
+	raw_version_data=$(grep "$version_key_string" "$check_file")
 	if [[ -z $raw_version_data ]]
 	then
 		echo "배포 대상 edge device의 version 파일을 읽어올 수 없습니다."
