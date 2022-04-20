@@ -75,7 +75,7 @@ DEPLOY_TARGET_DEVICES=`vpn_ip_to_device_id $deploy_target_vpn_ips`
 deploy_start_message="$CODE_NAME 배포가 시작됩니다. 배포 작업 종료시까지 아래 장비들에 접속이 금지됩니다.
 	Device: `echo ${DEPLOY_TARGET_DEVICES[@]}| sed 's/ /\,  /g'`"
 
-slackboy send --message "${deploy_start_message}" --channel "${SLACK_CHANNEL}" --prefix "deploy-process" > /dev/null
+slackboy --message "${deploy_start_message}" --channel "${SLACK_CHANNEL}" --prefix "deploy-process" > /dev/null
 
 for HOST in `cat .tailscale-ip`
 do
@@ -127,6 +127,6 @@ else
 	exitcode=1
 fi
 echo $deploy_result_message
-slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix "deploy-process" > /dev/null
+slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix "deploy-process" > /dev/null
 
 exit $exitcode

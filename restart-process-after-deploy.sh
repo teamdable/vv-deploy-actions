@@ -90,6 +90,6 @@ fi
 echo $deploy_result_message
 
 source /etc/profile
-slackboy send --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix cd-restart-process
+slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix cd-restart-process
 
 exit $exitcode
