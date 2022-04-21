@@ -110,7 +110,7 @@ do
 			action/update-version.sh --code-name $CODE_NAME
 		fi
 	fi
-	slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --reply-ts ${slack_thread} > /dev/null
+	slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --reply-ts ${slack_thread}
 	echo -e "\n"
 done
 
@@ -128,6 +128,6 @@ else
 	exitcode=1
 fi
 echo $deploy_result_message
-slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix "deploy-process" > /dev/null
+slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --prefix "deploy-process"
 
 exit $exitcode
