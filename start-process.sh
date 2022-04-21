@@ -1,5 +1,6 @@
 #!/bin/bash
-LONG=user:,password:,otp:,process-name:,slack-channel:
+
+LONG=host:,user:,password:,otp:,process-name:,slack-channel:
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
     echo "인자전달이 잘못되었습니다."
@@ -10,6 +11,10 @@ eval set -- "$OPTS"
 while [[ $# -gt 0 ]]
 do
 	case "$1" in
+	--host)
+	  HOST=$2
+	  shift 2
+	  ;;
 	--user)
 		USER=$2
 		shift 2
@@ -43,16 +48,10 @@ vpn_ip_to_device_id() {
 	echo "${TARGET_DEVICES_ID[@]}"
 }
 
-for HOST in $(cat .tailscale-ip)
-do
-	echo "hostname: $HOST"
-
-  # 프로세스 켜기
-  action/start-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
-  start_result=$?
-  echo -e "\n"
-
-done
+# 프로세스 켜기
+action/start-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
+start_result=$?
+echo -e "\n"
 
 # 결과 메세지 처리
 DEVICE_ID=$(vpn_ip_to_device_id "${HOST}")

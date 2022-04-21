@@ -14,6 +14,7 @@ spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} cat ${parent_
 expect {
         "assword:" {
                 send "${password}\n"
+                exp_continue
         }
         "Verification code:" {
                 send "${otp_code}\n"

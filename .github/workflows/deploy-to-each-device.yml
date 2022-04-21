@@ -1,4 +1,4 @@
-name: test-process
+name: deploy parallelly
 
 on:
   workflow_call:
@@ -36,7 +36,7 @@ on:
         description: after deploy & install, send message to this slack channel
         required: true
         type: string
-      process-name:
+      process-name: # code-name 과 통합 될 수 있음
         description: exact name of process, using start and kill
         required: true
         type: string
@@ -99,7 +99,19 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Deployment
+      - name: send build file
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-to-each-device.sh --vpn-ip ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }} --process-name ${{ inputs.process-name }}
+          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+
+      - name: kill running process
+        run: |
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+
+      - name: install build file
+        run: |
+          action/install.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+
+      - name: start new process
+        run: |
+          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}

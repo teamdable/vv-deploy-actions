@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LONG=vpn-ip:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:,process-name:
+LONG=host:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:,process-name:
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
     echo "인자전달이 잘못되었습니다. "
@@ -11,7 +11,7 @@ eval set -- "$OPTS"
 while [[ $# -gt 0 ]]
 do
 	case "$1" in
-	--vpn-ip)
+	--host)
 		HOST=$2
 		shift 2
 		;;
@@ -58,9 +58,6 @@ do
 	esac
 done
 
-echo "$HOST"
-
-# /tmp 디렉토리 scp 전달 + unzip
 
 echo "hostname: $HOST"
 
