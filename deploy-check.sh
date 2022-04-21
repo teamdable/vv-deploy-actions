@@ -25,7 +25,7 @@ do
 	esac
 done
 
-if ! [[ -z `grep "/tmp/$ZIP_FILE_NAME exist" deploy_check_$HOST.txt` ]]
+if ! [[ -z `grep "/tmp/$ZIP_FILE_NAME 파일이 존재합니다" deploy_check_$HOST.txt` ]]
 then
 		echo "build & deploy Success"
 		exit 0
