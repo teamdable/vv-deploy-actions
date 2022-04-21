@@ -10,7 +10,7 @@ set otp_code [exec oathtool --totp -b ${otp}]
 set timeout 30
 spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; check-file-existence --filename /tmp/$zip_file_name"
 expect {
-        "Password:" {
+        "assword:" {
                 send "${password}\n"
                 exp_continue
         }
