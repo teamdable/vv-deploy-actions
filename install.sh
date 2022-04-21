@@ -1,10 +1,15 @@
 #!/bin/bash
 
-LONG=host:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:
+usage='
+usage : install.sh --host { HOST } --user { USER } --password { PASSWORD }
+ --otp { OTP } --zip-file-name { ZIP_FILE_NAME } --parent-dir { PARENT_DIR } --code-name { CODE-NAME }
+ '
+LONG=host:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:,help
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
-    echo "인자전달이 잘못되었습니다. "
-    exit 1
+		echo "인자전달이 잘못되었습니다. 사용예시를 확인해주세욧"
+		echo "$usage"
+		exit 1
 }
 eval set -- "$OPTS"
 
@@ -15,7 +20,7 @@ do
 		HOST=$2
 		shift 2
 		;;
-  --user)
+	--user)
 		USER=$2
 		shift 2
 		;;
@@ -39,6 +44,10 @@ do
 		CODE_NAME=$2
 		shift 2
 		;;
+	--help)
+		echo "$usage"
+		exit 0
+		;;
 	--)
 		shift
 		break
@@ -57,6 +66,6 @@ install_result=$?
 
 if [[ $install_result -eq 1 ]]
 then
-  echo "install 작업에 실패했습니다"
-  exit 1
+	echo "install 작업에 실패했습니다"
+	exit 1
 fi
