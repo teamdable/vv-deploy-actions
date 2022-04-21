@@ -22,7 +22,7 @@ do
 done
 
 UPDATE_VERSION=`cat only-version`
-if [[ $CODE_NAME == "process"]]
+if [[ $CODE_NAME == "process" ]]
 then
 	CODE_NAME="process-monitoring"
 elif [[ $CODE_NAME == "resource" ]]
