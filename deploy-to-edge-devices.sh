@@ -110,7 +110,7 @@ do
 			action/update-version.sh --code-name $CODE_NAME
 		fi
 	fi
-	slackboy --message "${deploy_result_message}" --channel ${SLACK_CHANNEL} --reply-ts ${slack_thread}
+	slackboy --message "`vpn_ip_to_device_id ${HOST}` 배포 프로세스가 종료되었습니다." --channel ${SLACK_CHANNEL} --reply-ts ${slack_thread}
 	echo -e "\n"
 done
 
