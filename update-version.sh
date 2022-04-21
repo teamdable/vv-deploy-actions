@@ -22,4 +22,15 @@ do
 done
 
 UPDATE_VERSION=`cat only-version`
+if [[ $CODE_NAME == "process"]]
+then
+	CODE_NAME="process-monitoring"
+elif [[ $CODE_NAME == "resource" ]]
+then
+	CODE_NAME="resource-monitoring"
+elif [[ $CODE_NAME == "vv-yolor" ]]
+then
+	CODE_NAME="inference"
+fi
+
 sed -i "s/$CODE_NAME: [0-9]\+\.[0-9]\+\.[0-9]\+[(a|b|rc)]*[0-9]*/$CODE_NAME: $UPDATE_VERSION/g" ~/.metadata
