@@ -39,11 +39,6 @@ def main(include_api_live_inventory: bool,
     if not deploy_vpn_ips:
         raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
     if stdout_json:
-        # json_list = []
-        # for each_ip in deploy_vpn_ips:
-        #     each_record = {'vpn_ips': each_ip}
-        #     json_list.append(each_record)
-        # vpn_json = json.dumps(json_list)
         vpn_json = json.dumps(deploy_vpn_ips)
         print(vpn_json)
 
@@ -61,7 +56,7 @@ if __name__ == '__main__':
                         help='live inventory를 결과에 포함시킬지 여부.')
     parser.add_argument('--allow-devices', nargs="+", default=[],
                         help='결과에 포함할 디바이스 정보. comma separated list.')
-    parser.add_argument('--exclude-devices', nargs="+", default=[],
+    parser.add_argument('--exclude-devices', action="append", default=[],
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')

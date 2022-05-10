@@ -4,12 +4,16 @@ vv-deploy-actions는 edge device에 소스 코드 배포와 프로세스 재시�
 
 ## Contents
 1. [Deploy Actions](#deploy-actions): 소스 코드 배포 작업을 제공
-	1. Variables: deploy-actions 사용시 필요한 변수들
-	2. Usage: deploy-actions 사용법
-	3. Example: deploy-actions 사용 예시
+    1. Variables: deploy-actions 사용시 필요한 변수들
+    2. Usage: deploy-actions 사용법
+    3. Example: deploy-actions 사용 예시
 2. [Restart Actions](#restart-actions): edge device에서의 프로세스 재시작 작업을 제공
-	1. Variables: restart-actions 사용시 필요한 변수들
-	2. Example: restart-actions 사용 예시
+    1. Variables: restart-actions 사용시 필요한 변수들
+    2. Example: restart-actions 사용 예시
+3. [Parallel Deployment](#parallel-deployment) (NEW)`: 배포장비를 입력받아 연속적으로 배포를 제공
+    1. Variables:  Parallel Deployment 사용시 필요한 변수들
+    2. Usage : Parallel Deployment 사용법
+    3. Example : Parallel Deployment 사용 예시
 -------------------------------
 ## deploy-actions
 ### Variables
@@ -189,3 +193,53 @@ jobs:
       password: ${{ secrets.PASSWORD }}
       otp: ${{ secrets.OTP }}
 ```
+
+
+## parallel-deployment
+### Variables
+
+#### Input variables
+[deploy-actions](#deploy-actions)의 input, secret 변수와 모두 동일하나 `process-name`이 추가된다
+- `process-name`: 배포중간에 실행중인 프로세스를 끄고 켤때 필요하다. 
+
+    start-{process-name}, kill-{process-name} 명령어와 같이 사용되므로 
+
+	resource-monitoring, inference, edge-player ... 형태로 입력한다
+
+### Example
+배포하려는 소스코드의 repository에서는 workflow파일에서 vv-deploy-actions의 reusable workflows를 호출한다. ( 아래의 1번, 2번 과정을 따른다. )
+1. `bin/deploy/install-settings.sh` 파일을 작성한다. 예시는 [example/](https://github.com/teamdable/vv-deploy-actions/blob/main/example/)에서 확인할 수 있다.
+2. `.github/workflows/your-workflow-name.yml`를 작성한다. 예시는 아래에서 확인할 수 있다.
+       
+    ```yaml
+    name: Parallel Deployment
+	
+    on:
+      workflow_dispatch:
+        inputs:
+          deploy-target-devices:
+            description: '배포할 device_id를 입력하세요 (SN1-001, SN1-002 ... )'
+            required: true
+            type: string
+	
+    jobs:
+      CD:
+        uses: teamdable/vv-deploy-actions/.github/workflows/parallel_deployment.yml@main
+        with:
+          deploy-target-device: ${{ github.event.inputs.deploy-target-devices }}
+          user: 'ubuntu'
+          code-name: 'resource'
+          deploy-branch: ${GITHUB_REF##*/}
+          parent-dir: '/home/ubuntu'
+          version-file-name: '_version.py'
+          exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
+          slack-channel: 'general'
+          process-name: 'resource-monitoring'
+        secrets:
+          password: ${{ secrets.REMOTE_PASSWD }}
+          otp: ${{ secrets.GOOGLE_KEY }}
+	```
+
+
+
+-------------------------------

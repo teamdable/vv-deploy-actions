@@ -44,6 +44,10 @@ do
 		CODE_NAME=$2
 		shift 2
 		;;
+	--version-file)
+		VERSION_FILE=$2
+		shift 2
+		;;
 	--help)
 		echo "$usage"
 		exit 0
@@ -58,10 +62,10 @@ done
 
 # install - edge서버에서 해당 모듈을 사용할 수 있도록 압축 해제 & 패키지 설치
 action/install.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" "$PARENT_DIR" "$CODE_NAME" > install_check_$HOST.txt
-#sleep 10
-## install check
-#action/install-check.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PARENT_DIR" "$CODE_NAME" "$VERSION_FILE" > version_check_$HOST.txt
-#action/install-check.sh --host "$HOST" --version-file "$VERSION_FILE"
+sleep 10
+# install check
+action/install-check.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PARENT_DIR" "$CODE_NAME" "$VERSION_FILE" > version_check_$HOST.txt
+action/install-check.sh --host "$HOST" --version-file "$VERSION_FILE"
 install_result=$?
 
 if [[ $install_result -eq 1 ]]

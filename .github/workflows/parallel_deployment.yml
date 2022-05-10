@@ -57,10 +57,10 @@ jobs:
     steps:
       - id: send_slack
         run: |
-          result=$(slackboy -m "${ inputs.process-name }" 배포가 시작됩니다. 잠시 하던 일을 멈추고 구경해주세요. -p cd-deploy -c "${ inputs.slack-channel })
+          result=$(slackboy -m "${{ inputs.process-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요." -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
-          ts_value=$(echo $ts_value | tr -d "'")
+          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
           echo "::set-output name=thread_ts::$ts_value"
 
   Checkout-repository:
@@ -124,7 +124,7 @@ jobs:
 
       - name: install build file
         run: |
-          action/install.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+          action/install.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }} 
 
       - name: start new process
         run: |
@@ -132,4 +132,4 @@ jobs:
       - name: inform slackboy of finish
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
-          slackboy -m "$device_id"의 작업이 모두 끝났습니다 -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
+          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
