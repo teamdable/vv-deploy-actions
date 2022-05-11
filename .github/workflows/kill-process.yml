@@ -1,4 +1,4 @@
-name: restart process after deployment
+name: kill-process
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       process-name:
-        description: process name 
+        description: process name
         required: true
         type: string
       slack-channel:
@@ -24,8 +24,8 @@ on:
         required: true
 
 jobs:
-  restart-after-deploy:
-    name:   restart-after-deploy
+  kill-running-process:
+    name:   kill-running-process
     runs-on: self-hosted
     steps:
       - name: Checkout the deploy-target repository
@@ -37,16 +37,11 @@ jobs:
           repository: teamdable/vv-deploy-actions
           path: action/
 
-      - name: Install python packages for api call
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r action/requirements.txt --extra-index-url ${{ secrets.extra-index-url }} --trusted-host ${{ secrets.trusted-host }}
-
       - name: Get VPN IP of deploy-target devices
         run: |
           action/get-vpn-ip
 
-      - name: Kill and Start process
+      - name: Kill process
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/restart-process-after-deploy.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }} --slack-channel ${{ inputs.slack-channel }}
+          action/kill-process.sh --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }} --slack-channel ${{ inputs.slack-channel }}
