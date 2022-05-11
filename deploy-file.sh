@@ -51,11 +51,6 @@ done
 echo "hostname: $HOST"
 
 action/deploy.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" > /dev/null
-
-#  deploy check
-action/deploy-check.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" > deploy_check_$HOST.txt
-sleep 10
-action/deploy-check.sh --host "$HOST" --zip-file-name "$ZIP_FILE_NAME"
 deploy_result=$?
 
 if [[ $deploy_result -eq 1 ]]
