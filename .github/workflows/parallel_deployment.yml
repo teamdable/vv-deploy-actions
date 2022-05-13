@@ -118,25 +118,26 @@ jobs:
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
 
-      - name: kill running process
-        run: |
-          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+#      - name: kill running process
+#        run: |
+#          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
 
       - name: install runtime environment
         run: |
-          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }} --version-file ${{ inputs.version-file-name }}
+          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+#
+#      - name: validate version
+#        run: |
+#          target_version_raw=$(action/read-target-version.exp ${{ inputs.user }} ${{ inputs.matrix.vpn_ips }} ${{ secrets.password }}  ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} )
+#          echo Target version raw: $target_version_raw
+#          source_version_raw=$(cat ${{ inputs.version-file-name }} )
+#          echo Source version raw: $source_version_raw
+#          action/compare-raw-versions.sh --version-file ${{ inputs.version-file-name }} --source-version-raw "$source_version_raw" --target-version-raw "$target_version_raw"
 
-      - name: validate version
-        run: |
-          target_version_raw=$(action/read-target-version.exp ${{ inputs.user }} ${{ inputs.matrix.vpn_ips }} ${{ secrets.password }}  ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} )
-          echo Target version raw: $target_version_raw
-          source_version_raw=$(cat ${{ inputs.version-file-name }} )
-          echo Source version raw: $source_version_raw
-          action/compare-raw-versions.sh --version-file ${{ inputs.version-file-name }} --source-version-raw "$source_version_raw" --target-version-raw "$target_version_raw" 
+#      - name: start new process
+#        run: |
+#          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
 
-      - name: start new process
-        run: |
-          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
       - name: inform slackboy of finish
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)

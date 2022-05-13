@@ -4,7 +4,7 @@ usage='
 usage : install-env.sh --host { HOST } --user { USER } --password { PASSWORD }
  --otp { OTP } --zip-file-name { ZIP_FILE_NAME } --parent-dir { PARENT_DIR } --code-name { CODE-NAME }
  '
-LONG=host:,user:,password:,otp:,zip-file-name:,version-file:,parent-dir:,code-name:,help
+LONG=host:,user:,password:,otp:,zip-file-name:,parent-dir:,code-name:,help
 OPTS=$(getopt -o '' -a --longoptions $LONG  -- "$@")
 [ $? -eq 0 ] || {
 		echo "인자전달이 잘못되었습니다. 사용예시를 확인해주세욧"
