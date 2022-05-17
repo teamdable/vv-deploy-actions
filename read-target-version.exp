@@ -9,14 +9,16 @@ set code_name [lindex $argv 5]
 set version_file [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
-set timeout 200
+set timeout 20
 spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} cat ${parent_dir}/${code_name}/${version_file}
 expect {
         "assword:" {
                 send "${password}\n"
-                exp_continue
         }
         "Verification code:" {
                 send "${otp_code}\n"
         }
+}
+expect {
+        exit 0
 }
