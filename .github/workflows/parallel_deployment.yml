@@ -129,14 +129,16 @@ jobs:
       - name: validate version
         run: |
           target_version_raw=$(action/read-target-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }}  ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} )
-          echo Target version raw: $target_version_raw
+          target_version_split=(${target_version_raw})
+          target_version_raw=$(echo ${target_version_split[-1]})
           source_version_raw=$(cat ${{ inputs.version-file-name }} )
-          echo Source version raw: $source_version_raw
-#          action/compare-raw-versions.sh --version-file ${{ inputs.version-file-name }} --source-version-raw "$source_version_raw" --target-version-raw "$target_version_raw"
+          source_version_split=(${source_version_raw})
+          source_version_raw=$(echo ${source_version_split[-1]})
+          action/compare-raw-versions.sh --version-file ${{ inputs.version-file-name }} --source-version-raw "$source_version_raw" --target-version-raw "$target_version_raw"
 
-#      - name: start new process
-#        run: |
-#          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+      - name: start new process
+        run: |
+          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
 
       - name: inform slackboy of finish
         run: |

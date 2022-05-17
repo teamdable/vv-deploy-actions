@@ -10,7 +10,7 @@ set version_file [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} cat ${parent_dir}/${code_name}/${version_file}
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname}
 expect {
         "assword:" {
                 send "${password}\n"
@@ -19,6 +19,6 @@ expect {
                 send "${otp_code}\n"
         }
 }
-expect {
-        exit 0
-}
+set target_version_raw [exec cat ${parent_dir}/${code_name}/${version_file}]
+puts "Target version raw: $target_version_raw"
+exit 0

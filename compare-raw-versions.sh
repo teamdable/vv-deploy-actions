@@ -31,15 +31,14 @@ done
 
 extract_version_from_raw() {
 	local version_raw=$1
-	
-	raw_version_data=$(grep "$version_key_string" "$version_raw")
-	if [[ -z $raw_version_data ]]
+	version=$(echo "$version_raw" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*")
+	if [[ -z $version ]]
 	then
-		echo "version 파일을 읽어올 수 없습니다. $version_raw"
+		echo "version 파일을 읽어올 수 없습니다. $version"
 		exit 1
 	fi
-	version=$(echo "$raw_version_data" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*")
-	echo $version
+
+	echo "$version"
 }
 
 if [[ $VERSION_FILE == "package.json" ]]
