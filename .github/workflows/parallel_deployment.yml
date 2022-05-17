@@ -118,9 +118,9 @@ jobs:
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
 
-#      - name: kill running process
-#        run: |
-#          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+      - name: kill running process
+        run: |
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
 
       - name: install runtime environment
         run: |

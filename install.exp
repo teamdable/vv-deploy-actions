@@ -27,9 +27,12 @@ expect "${user}" {
 
 expect "${user}" {
             send "backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}\n"
-            send "exit 0\n"
 }
 
+expect "${user}" {
+            send "bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}\n"
+            send "exit 0\n"
+}
 foreach {pid spawnid os_error_flag value} [wait] break
 puts "Exit code of spawned process: $value"
 exit $value
