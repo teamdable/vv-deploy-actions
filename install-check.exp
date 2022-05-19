@@ -4,11 +4,13 @@ set user [lindex $argv 0]
 set hostname [lindex $argv 1]
 set password [lindex $argv 2]
 set otp [lindex $argv 3]
-set zip_file_name [lindex $argv 4]
+set parent_dir [lindex $argv 4]
+set code_name [lindex $argv 5]
+set version_file [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
-set timeout 30
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; check-file-existence --file /tmp/$zip_file_name"
+set timeout 200
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} cat ${parent_dir}/${code_name}/${version_file}
 expect {
         "assword:" {
                 send "${password}\n"
@@ -16,6 +18,5 @@ expect {
         }
         "Verification code:" {
                 send "${otp_code}\n"
-                exp_continue
         }
 }
