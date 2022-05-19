@@ -50,7 +50,7 @@ done
 
 echo "hostname: $HOST"
 
-action/deploy.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" > /dev/null
+action/deploy-file.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$ZIP_FILE_NAME" > /dev/null
 deploy_result=$?
 
 if [[ $deploy_result -eq 1 ]]
