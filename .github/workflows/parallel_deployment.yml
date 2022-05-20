@@ -113,24 +113,16 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: send build file
-        run: |
-          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
-
-      - name: kill running process
-        run: |
-          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
-
       - name: install runtime environment
         run: |
           action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
-
       - name: validate version
         run: |
           target_version_raw=$(action/read-target-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }}  ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} )
-          target_version_split=(${target_version_raw})
+          echo "read result $target_version_raw"
+          readarray -t target_version_split<<<"$target_version_raw"
           target_version_raw=$(echo ${target_version_split[-1]})
+          echo "split last index $target_version_raw"
           source_version_raw=$(cat ${{ inputs.version-file-name }} )
           source_version_split=(${source_version_raw})
           source_version_raw=$(echo ${source_version_split[-1]})

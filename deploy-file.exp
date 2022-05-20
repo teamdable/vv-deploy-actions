@@ -12,12 +12,14 @@ spawn /usr/bin/scp -o StrictHostKeyChecking=no ./${zip_file_name} ${user}@${host
 expect {
         "assword:" {
                 send "${password}\n"
-
+                exp_continue
         }
         "Verification code:" {
                 send "${otp_code}\n"
+                exp_continue
         }
 }
-expect {
-        exit 0
-}
+
+foreach {pid spawnid os_error_flag value} [wait] break
+puts "Exit code of spawned process: $value"
+exit $value

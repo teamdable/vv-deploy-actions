@@ -14,11 +14,14 @@ spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname}
 expect {
         "assword:" {
                 send "${password}\n"
+                exp_continue
         }
         "Verification code:" {
                 send "${otp_code}\n"
         }
 }
-set target_version_raw [exec cat ${parent_dir}/${code_name}/${version_file}]
-puts "Target version raw: $target_version_raw"
-exit 0
+set timeout 5
+expect "${user}" {
+            send "cat ${parent_dir}/${code_name}/${version_file}\n"
+            }
+expect eof
