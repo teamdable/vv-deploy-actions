@@ -113,25 +113,27 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: send build file
+        run: |
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+          sleep 10
+      - name: kill running process
+        run: |
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+          sleep 10
       - name: install runtime environment
         run: |
           action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+          sleep 10
       - name: validate version
         run: |
-          target_version_raw=$(action/read-target-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }}  ${{ secrets.otp }} ${{ inputs.parent-dir }} ${{ inputs.code-name }} ${{ inputs.version-file-name }} )
-          echo "read result $target_version_raw"
-          readarray -t target_version_split<<<"$target_version_raw"
-          target_version_raw=$(echo ${target_version_split[-1]})
-          echo "split last index $target_version_raw"
-          source_version_raw=$(cat ${{ inputs.version-file-name }} )
-          source_version_split=(${source_version_raw})
-          source_version_raw=$(echo ${source_version_split[-1]})
-          action/compare-raw-versions.sh --version-file ${{ inputs.version-file-name }} --source-version-raw "$source_version_raw" --target-version-raw "$target_version_raw"
-
+          action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
+          sleep 10
       - name: start new process
         run: |
           action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
-
+          sleep 10
       - name: inform slackboy of finish
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)

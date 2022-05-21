@@ -34,6 +34,7 @@ expect "${user}" {
             send "exit_code=$?\n"
             send "exit \$exit_code\n"
             }
+expect eof
 foreach {pid spawnid os_error_flag value} [wait] break
 puts "Exit code of spawned process: $value"
 exit $value
