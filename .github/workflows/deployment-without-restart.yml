@@ -36,10 +36,6 @@ on:
         description: after deploy & install, send message to this slack channel
         required: true
         type: string
-      process-name: # code-name 과 통합 될 수 있음
-        description: exact name of process, using start and kill
-        required: true
-        type: string
     secrets:
       password:
         description: edge device password
@@ -57,7 +53,7 @@ jobs:
     steps:
       - id: send_slack
         run: |
-          result=$(slackboy -m "${{ inputs.process-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요." -p deploy-process -c "${{ inputs.slack-channel }}")
+          result=$(slackboy -m "${{ inputs.code-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요." -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
           ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
