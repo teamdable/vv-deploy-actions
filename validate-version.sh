@@ -63,7 +63,7 @@ done
 target_version_raw=$(action/read-edge-version.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PARENT_DIR" "$CODE_NAME" "$VERSION_FILE_NAME" )
 echo "read result $target_version_raw"
 readarray -t target_version_split<<<"$target_version_raw"
-target_version_raw=$(echo "${target_version_split[-1]}")
+target_version_raw=$(echo "${target_version_split[-2]}")
 echo "split last index $target_version_raw"
 source_version_raw=$(cat "$VERSION_FILE_NAME" )
 source_version_split=("${source_version_raw}")
