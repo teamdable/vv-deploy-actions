@@ -57,7 +57,8 @@ jobs:
     steps:
       - id: send_slack
         run: |
-          result=$(slackboy -m "${{ inputs.process-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요." -p deploy-process -c "${{ inputs.slack-channel }}")
+          msg=$(echo "${{ inputs.process-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요.\nDevices : ${{ inputs.deploy-target-device }}")
+          result=$(slackboy -m $msg -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
           ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
