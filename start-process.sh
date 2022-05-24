@@ -61,7 +61,6 @@ vpn_ip_to_device_id() {
 # 프로세스 켜기
 action/start-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
 start_result=$?
-echo -e "\n"
 
 # 결과 메세지 처리
 DEVICE_ID=$(vpn_ip_to_device_id "${HOST}")

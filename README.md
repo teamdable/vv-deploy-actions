@@ -224,7 +224,7 @@ jobs:
 	
     jobs:
       CD:
-        uses: teamdable/vv-deploy-actions/.github/workflows/parallel_deployment.yml@main
+        uses: teamdable/vv-deploy-actions/.github/workflows/deployment-with-restart.yml@main
         with:
           deploy-target-device: ${{ github.event.inputs.deploy-target-devices }}
           user: 'ubuntu'
