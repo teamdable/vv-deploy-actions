@@ -63,7 +63,6 @@ echo "hostname: $HOST"
 # 프로세스 종료
 action/kill-process.exp "$USER" "$HOST" "$PASSWORD" "$OTP" "$PROCESS_NAME"
 kill_result=$?
-echo -e "\n"
 
 
 # 결과 메세지 처리

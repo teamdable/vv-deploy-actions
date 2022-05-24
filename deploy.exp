@@ -12,6 +12,8 @@ spawn /usr/bin/scp -o StrictHostKeyChecking=no ./${zip_file_name} ${user}@${host
 expect {
         "assword:" {
                 send "${password}\n"
+                exp_continue
+
         }
         "Verification code:" {
                 send "${otp_code}\n"

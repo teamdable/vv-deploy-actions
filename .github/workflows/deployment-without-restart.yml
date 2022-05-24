@@ -1,0 +1,128 @@
+name: deploy parallelly
+
+on:
+  workflow_call:
+    inputs:
+      deploy-target-device:
+        description: "배포 대상이 되는 디바이스"
+        required: true
+        type: string
+      user:
+        description: edge device username
+        required: true
+        type: string
+      code-name:
+        description: code module name
+        required: true
+        type: string
+      deploy-branch:
+        description: branch to be deployed
+        default: main
+        required: false
+        type: string
+      parent-dir:
+        description: code directory of the edge device
+        required: true
+        type: string
+      version-file-name:
+        description: _version_.py or .version
+        required: true
+        type: string
+      exclude-files-from-zip:
+        description: files that you want to delete from zip
+        required: false
+        type: string
+      slack-channel:
+        description: after deploy & install, send message to this slack channel
+        required: true
+        type: string
+    secrets:
+      password:
+        description: edge device password
+        required: true
+      otp:
+        description: edge device otp
+        required: true
+
+jobs:
+  Inform-slack-of-start:
+    name: inform of start
+    runs-on: self-hosted
+    outputs:
+      thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
+    steps:
+      - id: send_slack
+        run: |
+          result=$(slackboy -m "${{ inputs.code-name }} 배포가 시작됩니다. 해당기기의 접속을 멈춰주세요." -p deploy-process -c "${{ inputs.slack-channel }}")
+          IFS=','; result_arr=(${result}); unset IFS;
+          IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
+          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
+          echo "::set-output name=thread_ts::$ts_value"
+
+  Checkout-repository:
+    name: checkout and get vpn ip
+    runs-on: self-hosted
+    outputs:
+      vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
+    steps:
+      - name: Checkout the deploy-target repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the action repository
+        uses: actions/checkout@v2
+        with:
+          repository: teamdable/vv-deploy-actions
+          path: action/
+
+      - name: Get VPN IP of deploy-target devices
+        id: convert_device_to_vpn
+        run: |
+          VPN_IP_JSON=$(action/get-vpn-ip --allow-devices ${{ inputs.deploy-target-device }} --stdout-json )
+          echo $VPN_IP_JSON
+          echo "::set-output name=vpn_ips::$VPN_IP_JSON"
+
+  Build-deploy-file:
+    name: preparing for build file
+    runs-on: self-hosted
+    needs: Checkout-repository
+    outputs:
+      zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
+    steps:
+      - name: Build
+        id: build_deploy_code
+        run: |
+          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
+          zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
+          echo "::set-output name=zip_file_name::$zip_file_name" 
+
+          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
+          zip --delete $zip_file_name ".github/*" ".gitignore"
+          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
+
+  Deployment-to-each-device:
+    name: deploy to each device
+    runs-on: self-hosted
+    needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
+    strategy:
+      matrix:
+        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+      fail-fast: false
+
+    steps:
+      - name: send build file
+        run: |
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+          sleep 10
+      - name: install runtime environment
+        run: |
+          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+          sleep 10
+      - name: validate version
+        run: |
+          action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
+          sleep 10
+      - name: inform slackboy of finish
+        run: |
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}

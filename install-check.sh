@@ -27,7 +27,7 @@ done
 
 extract_version() {
 	local check_file=$1
-	
+
 	raw_version_data=$(grep "$version_key_string" "$check_file")
 	if [[ -z $raw_version_data ]]
 	then

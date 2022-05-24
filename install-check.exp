@@ -18,5 +18,6 @@ expect {
         }
         "Verification code:" {
                 send "${otp_code}\n"
+                exp_continue
         }
 }

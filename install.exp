@@ -10,7 +10,7 @@ set code_name [lindex $argv 6]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}; bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname}
 expect {
         "assword:" {
                 send "${password}\n"
@@ -18,10 +18,23 @@ expect {
         }
         "Verification code:" {
                 send "${otp_code}\n"
-                exp_continue
         }
 }
 
+expect "${user}" {
+            send ". /etc/profile\n"
+             }
+
+expect "${user}" {
+            send "backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}\n"
+}
+
+expect "${user}" {
+            send "bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}\n"
+            send "exit_code=$?\n"
+            send "exit \$exit_code\n"
+            }
+expect eof
 foreach {pid spawnid os_error_flag value} [wait] break
 puts "Exit code of spawned process: $value"
 exit $value
