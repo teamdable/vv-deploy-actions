@@ -31,7 +31,7 @@ done
 
 extract_version_from_raw() {
 	local version_raw=$1
-	version=$(echo "$version_raw" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+[(a|b|rc)]?[0-9]*")
+	version=$(echo "$version_raw" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+([a|b|rc]*)?[0-9]*")
 	if [[ -z $version ]]
 	then
 		echo "version 파일을 읽어올 수 없습니다. $version"
