@@ -79,7 +79,7 @@ jobs:
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
-          VPN_IP_JSON=$(action/get-vpn-ip --allow-devices ${{ inputs.deploy-target-device }} --stdout-json )
+          VPN_IP_JSON=$(action/get-vpn-ip-new --allow-devices ${{ inputs.deploy-target-device }} --stdout-json )
           echo $VPN_IP_JSON
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
 
