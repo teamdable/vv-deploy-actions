@@ -36,6 +36,10 @@ on:
         description: after deploy & install, send message to this slack channel
         required: true
         type: string
+      process-name:
+        description: for slack message reference
+        required: true
+        type: string
     secrets:
       password:
         description: edge device password
