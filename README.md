@@ -238,7 +238,7 @@ jobs:
           exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
           slack-channel: 'general'
           process-name: 'resource-monitoring'
-		  deploy-message: ${{ github.event.inputs.deploy-message }}
+          deploy-message: ${{ github.event.inputs.deploy-message }}
         secrets:
           password: ${{ secrets.REMOTE_PASSWD }}
           otp: ${{ secrets.GOOGLE_KEY }}
