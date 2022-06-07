@@ -203,8 +203,8 @@ jobs:
 - `process-name`: 배포중간에 실행중인 프로세스를 끄고 켤때 필요하다. 
 
     start-{process-name}, kill-{process-name} 명령어와 같이 사용되므로 
-
-	resource-monitoring, inference, edge-player ... 형태로 입력한다
+    
+    resource-monitoring, inference, edge-player ... 형태로 입력한다
 
 ### Example
 배포하려는 소스코드의 repository에서는 workflow파일에서 vv-deploy-actions의 reusable workflows를 호출한다. ( 아래의 1번, 2번 과정을 따른다. )
@@ -221,7 +221,10 @@ jobs:
             description: '배포할 device_id를 입력하세요 (SN1-001, SN1-002 ... )'
             required: true
             type: string
-	
+          deploy-message:
+            description: '배포 내용/유의사항 등을 입력하세요'
+            required: true
+            type: string
     jobs:
       CD:
         uses: teamdable/vv-deploy-actions/.github/workflows/deployment-with-restart.yml@main
@@ -235,11 +238,8 @@ jobs:
           exclude-files-from-zip: 'bin/deploy/vpn-config.ini'
           slack-channel: 'general'
           process-name: 'resource-monitoring'
+          deploy-message: ${{ github.event.inputs.deploy-message }}
         secrets:
           password: ${{ secrets.REMOTE_PASSWD }}
           otp: ${{ secrets.GOOGLE_KEY }}
-	```
-
-
-
--------------------------------
+    ```

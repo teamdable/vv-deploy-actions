@@ -40,6 +40,10 @@ on:
         description: exact name of process, using start and kill
         required: true
         type: string
+      deploy-message:
+        description: 슬랙에 배포 메세지를 보낼 때, 배포 내용과 유의사항을 입력
+        required: false
+        type: string
     secrets:
       password:
         description: edge device password
@@ -57,8 +61,11 @@ jobs:
     steps:
       - id: send_slack
         run: |
+          deploy_username=$(echo 배포 주체: ${{ github.actor }})
+          deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
           target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g")
-          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 해당기기의 접속을 멈춰주세요.$'\n'Devices : $target_devices )"
+          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
+
           result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
