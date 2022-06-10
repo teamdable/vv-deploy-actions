@@ -21,17 +21,22 @@ def write_list_to_files(input_list: List[str]):
         with open(".tailscale-ip", "a") as f:
             f.write(i + "\n")
 
+def split_string_into_list(string: str):
+    if len(string):
+        string = string.replace(',', " ").split()
+    else:
+        string = None
 
-def main(include_api_live_inventory: str,
-         allow_devices: List,
-         exclude_devices: List,
+    return string
+
+def main(include_api_live_inventory: bool,
+         allow_devices: str,
+         exclude_devices: str,
          exclude_inventory_id: List,
          stdout_json: bool = False):
 
-    if include_api_live_inventory.lower()=='false':
-        include_api_live_inventory = False
-    elif include_api_live_inventory.lower()=='true':
-        include_api_live_inventory = True
+    allow_devices = split_string_into_list(allow_devices)
+    exclude_devices = split_string_into_list(exclude_devices)
 
     edge_info = get_edge_info(include_api_live_inventory=include_api_live_inventory,
                               allow_devices=allow_devices,
@@ -57,11 +62,11 @@ if __name__ == '__main__':
                                               overriding_config_name='vv-deploy-actions-config.ini',
                                               allow_overriding=False)
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
-    parser.add_argument('--include-api-live-inventory', type=str, default='false',
+    parser.add_argument('--include-api-live-inventory', action='store_true',
                         help='live inventory를 결과에 포함시킬지 여부.')
-    parser.add_argument('--allow-devices', nargs="+", default=[],
+    parser.add_argument('--allow-devices', type=str,
                         help='결과에 포함할 디바이스 정보. comma separated list.')
-    parser.add_argument('--exclude-devices', action="append", default=[],
+    parser.add_argument('--exclude-devices', type=str,
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
