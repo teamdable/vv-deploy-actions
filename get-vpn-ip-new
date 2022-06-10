@@ -22,11 +22,16 @@ def write_list_to_files(input_list: List[str]):
             f.write(i + "\n")
 
 
-def main(include_api_live_inventory: bool,
+def main(include_api_live_inventory: str,
          allow_devices: List,
          exclude_devices: List,
          exclude_inventory_id: List,
          stdout_json: bool = False):
+
+    if include_api_live_inventory.lower()=='false':
+        include_api_live_inventory = False
+    elif include_api_live_inventory.lower()=='true':
+        include_api_live_inventory = True
 
     edge_info = get_edge_info(include_api_live_inventory=include_api_live_inventory,
                               allow_devices=allow_devices,
@@ -52,7 +57,7 @@ if __name__ == '__main__':
                                               overriding_config_name='vv-deploy-actions-config.ini',
                                               allow_overriding=False)
     parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
-    parser.add_argument('--include-api-live-inventory', action='store_true',
+    parser.add_argument('--include-api-live-inventory', type=str, default='false',
                         help='live inventory를 결과에 포함시킬지 여부.')
     parser.add_argument('--allow-devices', nargs="+", default=[],
                         help='결과에 포함할 디바이스 정보. comma separated list.')

@@ -44,6 +44,11 @@ on:
         description: 슬랙에 배포 메세지를 보낼 때, 배포 내용과 유의사항을 입력
         required: false
         type: string
+      deploy-to-all-live-devices:
+        description: 라이브장비 전체배포시에 사옹한다
+        required: false
+        type: boolean
+
     secrets:
       password:
         description: edge device password
