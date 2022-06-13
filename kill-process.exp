@@ -36,6 +36,7 @@ foreach process_name $process_list_tcl {
     } else {
         lappend fail_list $fail_list
     }
+}
 expect "${user}" {
                 send "exit \$exit_code\n"
              }

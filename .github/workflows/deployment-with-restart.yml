@@ -43,7 +43,7 @@ on:
         description: after deploy & install, send message to this slack channel
         required: true
         type: string
-      process-name: # code-name 과 통합 될 수 있음
+      process-list:
         description: exact name of process, using start and kill
         required: true
         type: string
@@ -73,7 +73,7 @@ jobs:
           deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
           if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g"); fi
-          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
+          msg="$(echo ${{ inputs.code-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
           result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
@@ -142,7 +142,7 @@ jobs:
           sleep 10
       - name: kill running process
         run: |
-          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
           sleep 10
       - name: install runtime environment
         run: |
