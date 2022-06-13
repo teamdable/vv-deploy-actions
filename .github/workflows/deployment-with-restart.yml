@@ -3,6 +3,10 @@ name: deploy parallelly
 on:
   workflow_call:
     inputs:
+      deploy-to-all-live-devices:
+        description: 라이브장비 전체배포시에 사옹한다
+        required: false
+        type: string
       deploy-target-device:
         description: "배포 대상이 되는 디바이스"
         required: true
@@ -47,10 +51,6 @@ on:
         description: 슬랙에 배포 메세지를 보낼 때, 배포 내용과 유의사항을 입력
         required: false
         type: string
-      deploy-to-all-live-devices:
-        description: 라이브장비 전체배포시에 사옹한다
-        required: false
-        type: string
 
     secrets:
       password:
@@ -61,24 +61,24 @@ on:
         required: true
 
 jobs:
-#  Inform-slack-of-start:
-#    name: inform of start
-#    runs-on: self-hosted
-#    outputs:
-#      thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
-#    steps:
-#      - id: send_slack
-#        run: |
-#          deploy_username=$(echo 배포 주체: ${{ github.actor }})
-#          deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
-#          if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
-#          else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g"); fi
-#          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
-#          result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
-#          IFS=','; result_arr=(${result}); unset IFS;
-#          IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
-#          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
-#          echo "::set-output name=thread_ts::$ts_value"
+  Inform-slack-of-start:
+    name: inform of start
+    runs-on: self-hosted
+    outputs:
+      thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
+    steps:
+      - id: send_slack
+        run: |
+          deploy_username=$(echo 배포 주체: ${{ github.actor }})
+          deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
+          if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
+          else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g"); fi
+          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
+          result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
+          IFS=','; result_arr=(${result}); unset IFS;
+          IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
+          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
+          echo "::set-output name=thread_ts::$ts_value"
 
   Checkout-repository:
     name: checkout and get vpn ip
