@@ -107,56 +107,56 @@ jobs:
           echo Target device : "$VPN_IP_JSON"
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
 
-#  Build-deploy-file:
-#    name: preparing for build file
-#    runs-on: self-hosted
-#    needs: Checkout-repository
-#    outputs:
-#      zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
-#    steps:
-#      - name: Build
-#        id: build_deploy_code
-#        run: |
-#          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
-#          zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
-#          echo "::set-output name=zip_file_name::$zip_file_name"
-#
-#          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
-#          zip --delete $zip_file_name ".github/*" ".gitignore"
-#          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
-#
-#  Deployment-to-each-device:
-#    name: deploy to each device
-#    runs-on: self-hosted
-#    needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
-#    strategy:
-#      matrix:
-#        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
-#      fail-fast: false
-#
-#    steps:
-#      - name: send build file
-#        run: |
-#          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
-#          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
-#          sleep 10
-#      - name: kill running process
-#        run: |
-#          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
-#          sleep 10
-#      - name: install runtime environment
-#        run: |
-#          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
-#          sleep 10
-#      - name: validate version
-#        run: |
-#          action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
-#          sleep 10
-#      - name: start new process
-#        run: |
-#          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
-#          sleep 10
-#      - name: inform slackboy of finish
-#        run: |
-#          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
-#          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
+  Build-deploy-file:
+    name: preparing for build file
+    runs-on: self-hosted
+    needs: Checkout-repository
+    outputs:
+      zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
+    steps:
+      - name: Build
+        id: build_deploy_code
+        run: |
+          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
+          zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
+          echo "::set-output name=zip_file_name::$zip_file_name"
+
+          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
+          zip --delete $zip_file_name ".github/*" ".gitignore"
+          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
+
+  Deployment-to-each-device:
+    name: deploy to each device
+    runs-on: self-hosted
+    needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
+    strategy:
+      matrix:
+        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+      fail-fast: false
+
+    steps:
+      - name: send build file
+        run: |
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+          sleep 10
+      - name: kill running process
+        run: |
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+          sleep 10
+      - name: install runtime environment
+        run: |
+          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+          sleep 10
+      - name: validate version
+        run: |
+          action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
+          sleep 10
+      - name: start new process
+        run: |
+          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-name ${{ inputs.process-name }}
+          sleep 10
+      - name: inform slackboy of finish
+        run: |
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
