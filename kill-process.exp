@@ -27,11 +27,16 @@ lappend success_list
 lappend fail_list
 set process_list_tcl [split $process_list "."]
 foreach process_name $process_list_tcl {
+    set exitcode 1
     expect "${user}" {
                 send "kill-${process_name}\n"
-                send "exit_code=$?\n"
+                send "echo exit_code=$?\n"
              }
-    if {$exit_code == 0} {
+    expect "exit_code=0" {
+                set exitcode 0
+    }
+    expect eof
+    if {$exitcode == 0} {
         lappend success_list $process_name
     } else {
         lappend fail_list $fail_list
