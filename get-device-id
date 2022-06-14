@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import vv_configargparse
+from vv_edge_info.edge_info import search_edge_info
+
+
+def split_string_into_list(string: str, delimiter=','):
+    if len(string):
+        split = string.split(delimiter)
+    else:
+        split = None
+
+    return split
+
+
+def main(vpn_ip: str):
+    vpn_ip_list = split_string_into_list(vpn_ip)
+    device_id_string = ''
+    for vpn_ip in vpn_ip_list:
+        if vpn_ip == '':
+            continue
+        device_id = search_edge_info(key='vpn_ip', value=vpn_ip)['device_id']
+        device_id_string += f'{device_id} '
+    device_id_string = device_id_string.strip().replace('\n', '').replace(' ', ', ')
+    if not device_id_string:
+        raise ValueError(f'적합한 device id 를 찾지 못했습니다. vpn_ip 인자값을 다시 확인해주세요 -> {vpn_ip}')
+
+    print(device_id_string)
+
+
+if __name__ == '__main__':
+    parser = vv_configargparse.get_argument_parser()
+    parser.add_argument('--vpn-ip', type=str, required=True,
+                        help='vpn-ip string value')
+    args = parser.parse_args()
+    try:
+        main(vpn_ip=args.vpn_ip)
+
+    except Exception as e:
+        raise e

@@ -7,6 +7,7 @@ import json
 
 import vv_configargparse
 from vv_edge_info.edge_info import get_edge_info
+from vv_edge_info import edge_info
 
 
 def write_list_to_files(input_list: List[str]):
