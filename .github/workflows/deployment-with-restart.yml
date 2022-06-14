@@ -85,6 +85,7 @@ jobs:
     runs-on: self-hosted
     outputs:
       vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
+      vpn_ips_string: ${{ steps.convert_device_to_vpn.outputs.fail_hosts }}
     steps:
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
@@ -106,6 +107,13 @@ jobs:
           VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS --stdout-json )
           echo Target device : "$VPN_IP_JSON"
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
+          echo "::set-output name=fail_hosts::$(echo ${VPN_IP_JSON:1:-1} | tr ',' ' ')"
+
+  Create-deploy-devices-list:
+    name: listing devices to be deployed
+    runs-on: self-hosted
+    needs: Checkout-repository
+
 
   Build-deploy-file:
     name: preparing for build file
@@ -133,6 +141,8 @@ jobs:
       matrix:
         vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
       fail-fast: false
+    env:
+        failure_list : ${{ fromJson(needs.Checkout-repository.outputs.fail_hosts) }}
 
     steps:
       - name: send build file
@@ -156,6 +166,12 @@ jobs:
         run: |
           action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
           sleep 10
+      - name: subset hostname from failure list
+        run: |
+          failure_list=($($env.failure_list | tr ' ' ' ' ))
+          failure_string=${failure_list[@]#${{ matrix.vpn_ips }}}
+          echo "{failure_list}={$failure_string}" >> $GITHUB_ENV
+          echo "남은 배포 기기 리스트 : $failure_list"
       - name: inform slackboy of finish
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
