@@ -9,11 +9,6 @@ import vv_configargparse
 from vv_edge_info.edge_info import get_edge_info
 
 
-def change_working_directory():
-    filepath = Path(__file__).parent.parent
-    os.chdir(filepath)
-
-
 def write_list_to_files(input_list: List[str]):
     if os.path.isfile('.tailscale-ip'):
         os.remove('.tailscale-ip')
@@ -22,11 +17,22 @@ def write_list_to_files(input_list: List[str]):
             f.write(i + "\n")
 
 
+def split_string_into_list(string: str):
+    if len(string):
+        string = string.replace(',', " ").split()
+    else:
+        string = None
+
+    return string
+
+
 def main(include_api_live_inventory: bool,
-         allow_devices: List,
-         exclude_devices: List,
+         allow_devices: str,
+         exclude_devices: str,
          exclude_inventory_id: List,
          stdout_json: bool = False):
+    allow_devices = split_string_into_list(allow_devices)
+    exclude_devices = split_string_into_list(exclude_devices)
 
     edge_info = get_edge_info(include_api_live_inventory=include_api_live_inventory,
                               allow_devices=allow_devices,
@@ -38,25 +44,21 @@ def main(include_api_live_inventory: bool,
 
     if not deploy_vpn_ips:
         raise Exception('배포 대상 장비가 없습니다. vpn-config.ini의 설정을 확인하세요.')
+
     if stdout_json:
         vpn_json = json.dumps(deploy_vpn_ips)
         print(vpn_json)
-
-    write_list_to_files(deploy_vpn_ips)
+    else:
+        write_list_to_files(deploy_vpn_ips)
 
 
 if __name__ == '__main__':
-    change_working_directory()
-    
-    parser = vv_configargparse.ArgumentParser(default_config_path='bin/deploy/vpn-config.ini',
-                                              overriding_config_name='vv-deploy-actions-config.ini',
-                                              allow_overriding=False)
-    parser.add_argument('-c', '--config', is_config_file=True, help='config file path')
+    parser = vv_configargparse.get_argument_parser()
     parser.add_argument('--include-api-live-inventory', action='store_true',
                         help='live inventory를 결과에 포함시킬지 여부.')
-    parser.add_argument('--allow-devices', nargs="+", default=[],
+    parser.add_argument('--allow-devices', type=str,
                         help='결과에 포함할 디바이스 정보. comma separated list.')
-    parser.add_argument('--exclude-devices', action="append", default=[],
+    parser.add_argument('--exclude-devices', type=str,
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')

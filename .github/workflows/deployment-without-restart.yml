@@ -3,6 +3,10 @@ name: deploy parallelly
 on:
   workflow_call:
     inputs:
+      deploy-to-all-live-devices:
+        description: 라이브장비 전체배포시에 사옹한다
+        required: false
+        type: string
       deploy-target-device:
         description: "배포 대상이 되는 디바이스"
         required: true
@@ -44,6 +48,7 @@ on:
         description: 슬랙에 배포 메세지를 보낼 때, 배포 내용과 유의사항을 입력
         required: false
         type: string
+
     secrets:
       password:
         description: edge device password
@@ -63,7 +68,8 @@ jobs:
         run: |
           deploy_username=$(echo 배포 주체: ${{ github.actor }})
           deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
-          target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g")
+          if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
+          else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g"); fi
           msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
 
           result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
@@ -90,7 +96,12 @@ jobs:
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
-          VPN_IP_JSON=$(action/get-vpn-ip-new --allow-devices ${{ inputs.deploy-target-device }} --stdout-json )
+          refined_target_device=$(echo "${{ inputs.deploy-target-device }}" | sed "s/ /,/g")
+          refined_exclude_device=$(echo "${{ inputs.exclude-target-device }}" |sed "s/ /,/g")
+          if [[ "${{ inputs.deploy-to-all-live-devices }}" == "true" ]]; then DEPLOY_LIVE_ARGS="--include-api-live-inventory"; else DEPLOY_LIVE_ARGS=""; fi
+          if [[ -n "${{ inputs.deploy-target-device }}" ]]; then ALLOW_DEVICES_ARGS="--allow-devices $refined_target_device"; else ALLOW_DEVICES_ARGS=""; fi
+          if [[ -n "${{ inputs.deploy-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS='--exclude-devices $refined_exclude_device'; else EXCLUDE_DEVICES_ARGS=""; fi
+          VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS --stdout-json )
           echo $VPN_IP_JSON
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
 
