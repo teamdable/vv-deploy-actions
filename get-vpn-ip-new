@@ -56,9 +56,9 @@ if __name__ == '__main__':
     parser = vv_configargparse.get_argument_parser()
     parser.add_argument('--include-api-live-inventory', action='store_true',
                         help='live inventory를 결과에 포함시킬지 여부.')
-    parser.add_argument('--allow-devices', type=str,
+    parser.add_argument('--allow-devices', type=str, default='',
                         help='결과에 포함할 디바이스 정보. comma separated list.')
-    parser.add_argument('--exclude-devices', type=str,
+    parser.add_argument('--exclude-devices', type=str, default='',
                         help='결과에서 제외할 디바이스 정보. allow-list보다 나중에 적용됨.')
     parser.add_argument('--exclude-inventory-id', action='append', default=[],
                         help='결과에서 제외할 인벤토리 정보. allow-list보다 나중에 적용됨.')
