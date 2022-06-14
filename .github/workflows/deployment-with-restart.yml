@@ -109,12 +109,6 @@ jobs:
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
           echo "::set-output name=fail_hosts::$(echo ${VPN_IP_JSON:1:-1} | tr ',' ' ')"
 
-  Create-deploy-devices-list:
-    name: listing devices to be deployed
-    runs-on: self-hosted
-    needs: Checkout-repository
-
-
   Build-deploy-file:
     name: preparing for build file
     runs-on: self-hosted
