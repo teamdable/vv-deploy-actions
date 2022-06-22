@@ -4,7 +4,7 @@ set user [lindex $argv 0]
 set hostname [lindex $argv 1]
 set password [lindex $argv 2]
 set otp [lindex $argv 3]
-set process_name [lindex $argv 4]
+set process_list [lindex $argv 4]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 20
@@ -24,10 +24,30 @@ expect "${user}" {
             send ". /etc/profile\n"
              }
 set timeout 5
-expect "${user}" {
-            send "start-${process_name}\n"
-            send "exit_code=$?\n"
-            send "exit \$exit_code\n"
+lappend success_list
+lappend fail_list
+set process_list_tcl [split $process_list "."]
+foreach process_name $process_list_tcl {
+    set exitcode 1
+    expect "${user}" {
+                send "start-${process_name}\n"
+                send "echo exit_code=$?\n"
              }
+    expect "exit_code=0" {
+                set exitcode 0
+    }
+    expect eof
+    if {$exitcode == 0} {
+        lappend success_list $process_name
+    } else {
+        lappend fail_list $fail_list
+    }
+}
+expect "${user}" {
+                send "exit \$exit_code\n"
+             }
+puts "Success list : $success_list"
+puts "Fail list : $fail_list"
+
 catch wait result
 exit [lindex $result 3]
