@@ -123,7 +123,7 @@ jobs:
 
           git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
           zip --delete $zip_file_name ".github/*" ".gitignore"
-          if [[ -e ${{ inputs.exclude-files-from-zip }} ]]; then zip --delete $zip_file_name ${{ inputs.exclude-files-from-zip }}; fi
+          for delete_file in ${{ inputs.exclude-files-from-zip }}; do if [[ -e $delete_file ]] || [[ -d $delete_file ]]; then zip --delete $zip_file_name $delete_file; fi; done
 
   Deployment-to-each-device:
     name: deploy to each device
