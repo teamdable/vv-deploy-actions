@@ -169,19 +169,26 @@ jobs:
 
   Complete-device-summary:
     name: process complete summary
+    if: ${{ always() }}
     needs: [ Deployment-to-each-device ]
     runs-on: self-hosted
     steps:
       - name: success devices
         run: |
-          complete_string=$(cat $file_path)
-          echo "complete_string : $complete_string"
-          complete_string=$(echo $complete_string | tr ' ' ',')
-          echo "refined string : $complete_string"
-          complete_devices=$(action/get-device-id --vpn-ip $complete_string)
+          if [[ -e $file_path ]] 
+          then 
+            complete_string=$(cat $file_path)
+            echo "complete_string : $complete_string"
+            complete_string=$(echo $complete_string | tr ' ' ',')
+            echo "refined string : $complete_string"
+            complete_devices=$(action/get-device-id --vpn-ip $complete_string)
+            rm -rf $file_path
+          else
+            complete_devices=""
+          fi
           echo "complete devices : $complete_devices"
           echo "complete_devices_string=$complete_devices" >> $GITHUB_ENV
-          rm -rf $file_path
+          
 
       - name : fail devices
         run: |
