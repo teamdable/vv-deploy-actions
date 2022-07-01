@@ -160,11 +160,12 @@ jobs:
           sleep 10
       - name: archive completed host name
         run: |
-          echo "${{ matrix.vpn_ips }} Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "${{ matrix.vpn_ips }}," >> $file_path
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          echo "$device_id Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "$device_id," >> $file_path
+          echo "device_id=$device_id" >> $GITHUB_ENV
       - name: inform slackboy of finish
         run: |
-          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
           slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
 
   Complete-device-summary:
@@ -179,9 +180,7 @@ jobs:
           then 
             complete_string=$(cat $file_path)
             echo "complete_string : $complete_string"
-            complete_string=$(echo $complete_string | tr ' ' ',')
-            echo "refined string : $complete_string"
-            complete_devices=$(action/get-device-id --vpn-ip $complete_string)
+            complete_devices=$(echo $complete_string | sed "s/ //g" | sed "s/,/ /g")
             rm -rf $file_path
           else
             complete_devices=""
@@ -192,9 +191,10 @@ jobs:
 
       - name : fail devices
         run: |
-          target_devices="${{ inputs.deploy-target-device }}"
-          complete_device_arr=($(echo $complete_devices_string | tr ',' ' '))
-          echo ${complete_device_arr[@]}
+          target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | tr ',' ' ')
+          echo "target_devices : $target_devices"
+          complete_device_arr=($(echo $complete_devices_string))
+          echo "complete_device_arr : ${complete_device_arr[@]}"
           for i in "${complete_device_arr[@]}"
           do 
             target_devices=$(echo $target_devices | sed "s/$i//")

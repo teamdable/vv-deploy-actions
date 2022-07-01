@@ -26,11 +26,11 @@ def split_string_into_list(string: str):
     return string
 
 
-def get_device_id(include_api_live_inventory: bool,
-                  allow_devices: str,
-                  exclude_devices: str,
-                  exclude_inventory_id: List,
-                  stdout_json: bool = False):
+def get_vpn_ip(include_api_live_inventory: bool,
+               allow_devices: str,
+               exclude_devices: str,
+               exclude_inventory_id: List,
+               stdout_json: bool = False):
     allow_devices = split_string_into_list(allow_devices)
     exclude_devices = split_string_into_list(exclude_devices)
 
@@ -66,11 +66,11 @@ if __name__ == '__main__':
                         help='결과를 stdout 으로 보여준다')
     args = parser.parse_args()
     try:
-        get_device_id(include_api_live_inventory=args.include_api_live_inventory,
-                      allow_devices=args.allow_devices,
-                      exclude_devices=args.exclude_devices,
-                      exclude_inventory_id=args.exclude_inventory_id,
-                      stdout_json=args.stdout_json)
+        get_vpn_ip(include_api_live_inventory=args.include_api_live_inventory,
+                   allow_devices=args.allow_devices,
+                   exclude_devices=args.exclude_devices,
+                   exclude_inventory_id=args.exclude_inventory_id,
+                   stdout_json=args.stdout_json)
 
     except Exception as e:
         raise e
