@@ -13,7 +13,7 @@ def split_string_into_list(string: str, delimiter=','):
     return split
 
 
-def main(vpn_ip: str):
+def get_device_id(vpn_ip: str):
     vpn_ip_list = split_string_into_list(vpn_ip)
     device_id_string = ''
     for vpn_ip in vpn_ip_list:
@@ -34,7 +34,7 @@ if __name__ == '__main__':
                         help='vpn-ip string value')
     args = parser.parse_args()
     try:
-        main(vpn_ip=args.vpn_ip)
+        get_device_id(vpn_ip=args.vpn_ip)
 
     except Exception as e:
         raise e
