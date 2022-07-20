@@ -146,6 +146,10 @@ jobs:
         run: |
           action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
           sleep 10
+      - name: update version of metadata
+        run: |
+          UPDATE_VERSION=$(cat only-version)
+          action/update-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.code-name }} $UPDATE_VERSION
       - name: inform slackboy of finish
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
