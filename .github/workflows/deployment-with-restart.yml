@@ -204,7 +204,7 @@ jobs:
 
       - name : inform of success and fail devices
         run: |
-          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices)"
+          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices $'\n':rotating_light: 해당 워크플로우는 deprecated 되었습니다. deployment-with-restart-v2.yml을 참조하세요.)"
           slackboy -m "$msg" -p deploy-process -c ${{ inputs.slack-channel }}
           
           
