@@ -1,0 +1,206 @@
+name: deploy parallelly
+
+on:
+  workflow_call:
+    inputs:
+      deploy-to-all-live-devices:
+        description: 라이브장비 전체배포시에 사옹한다
+        required: false
+        type: string
+      deploy-target-device:
+        description: "배포 대상이 되는 디바이스"
+        required: true
+        type: string
+      deploy-exclude-device:
+        description: "배포 대상에서  제외되는 디바이스"
+        type: string
+      user:
+        description: edge device username
+        required: true
+        type: string
+      code-name:
+        description: code module name
+        required: true
+        type: string
+      deploy-branch:
+        description: branch to be deployed
+        default: main
+        required: false
+        type: string
+      parent-dir:
+        description: code directory of the edge device
+        required: true
+        type: string
+      version-file-name:
+        description: _version_.py or .version
+        required: true
+        type: string
+      exclude-files-from-zip:
+        description: files that you want to delete from zip
+        required: false
+        type: string
+      slack-channel:
+        description: after deploy & install, send message to this slack channel
+        required: true
+        type: string
+      process-list:
+        description: exact name of process, using start and kill
+        required: true
+        type: string
+      deploy-message:
+        description: 슬랙에 배포 메세지를 보낼 때, 배포 내용과 유의사항을 입력
+        required: false
+        type: string
+
+    secrets:
+      password:
+        description: edge device password
+        required: true
+      otp:
+        description: edge device otp
+        required: true
+env:
+  file_path: /home/vv-team/actions/complete_list
+
+jobs:
+  Inform-slack-of-start:
+    name: inform of start
+    runs-on: self-hosted
+    outputs:
+      thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
+    steps:
+      - id: send_slack
+        run: |
+          deploy_username=$(echo 배포 주체: ${{ github.actor }})
+          deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
+          if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
+          else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
+          msg="$(echo ${{ inputs.code-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
+          result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
+          IFS=','; result_arr=(${result}); unset IFS;
+          IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
+          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
+          echo "::set-output name=thread_ts::$ts_value"
+
+  Checkout-repository:
+    name: checkout and get vpn ip
+    runs-on: self-hosted
+    outputs:
+      vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
+    steps:
+      - name: Checkout the deploy-target repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the action repository
+        uses: actions/checkout@v2
+        with:
+          repository: teamdable/vv-deploy-actions
+          path: action/
+
+      - name: Get VPN IP of deploy-target devices
+        id: convert_device_to_vpn
+        run: |
+          refined_target_device=$(echo "${{ inputs.deploy-target-device }}" | sed "s/ /,/g")
+          refined_exclude_device=$(echo "${{ inputs.exclude-target-device }}" |sed "s/ /,/g")
+          if [[ "${{ inputs.deploy-to-all-live-devices }}" == "true" ]]; then DEPLOY_LIVE_ARGS="--include-api-live-inventory"; else DEPLOY_LIVE_ARGS=""; fi
+          if [[ -n "${{ inputs.deploy-target-device }}" ]]; then ALLOW_DEVICES_ARGS="--allow-devices $refined_target_device"; else ALLOW_DEVICES_ARGS='--allow-devices ""'; fi
+          if [[ -n "${{ inputs.deploy-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS='--exclude-devices $refined_exclude_device'; else EXCLUDE_DEVICES_ARGS='--exclude-devices ""'; fi
+          VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS --stdout-json )
+          echo Target device : "$VPN_IP_JSON"
+          echo "::set-output name=vpn_ips::$VPN_IP_JSON"
+
+  Build-deploy-file:
+    name: preparing for build file
+    runs-on: self-hosted
+    needs: Checkout-repository
+    outputs:
+      zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
+    steps:
+      - name: Build
+        id: build_deploy_code
+        run: |
+          suffix="$(date '+%Y-%m-%d_%H:%M:%S')"
+          zip_file_name="${{ inputs.code-name }}-${suffix}.zip"
+          echo "::set-output name=zip_file_name::$zip_file_name"
+
+          git archive --format=zip ${{ inputs.deploy-branch }} -o $zip_file_name
+          zip --delete $zip_file_name ".github/*" ".gitignore"
+          for delete_file in ${{ inputs.exclude-files-from-zip }}; do if [[ -e $delete_file ]] || [[ -d $delete_file ]]; then zip --delete $zip_file_name $delete_file; fi; done
+
+  Deployment-to-each-device:
+    name: deploy to each device
+    runs-on: self-hosted
+    needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
+    strategy:
+      matrix:
+        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+      fail-fast: false
+
+    steps:
+      - name: send build file
+        run: |
+          echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
+          action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
+          sleep 10
+      - name: install runtime environment
+        run: |
+          action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
+          sleep 10
+      - name: validate version
+        run: |
+          action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
+          sleep 10
+      - name: restart new process
+        run: |
+          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
+          sleep 10
+          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
+          sleep 10
+      - name: archive completed host name
+        run: |
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          echo "$device_id Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "$device_id," >> $file_path
+          echo "device_id=$device_id" >> $GITHUB_ENV
+      - name: inform slackboy of finish
+        run: |
+          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
+
+  Complete-device-summary:
+    name: process complete summary
+    if: ${{ always() }}
+    needs: [ Deployment-to-each-device ]
+    runs-on: self-hosted
+    steps:
+      - name: success devices
+        run: |
+          if [[ -e $file_path ]] 
+          then 
+            complete_string=$(cat $file_path)
+            echo "complete_string : $complete_string"
+            complete_devices=$(echo $complete_string | sed "s/ //g" | sed "s/,/ /g")
+            rm -rf $file_path
+          else
+            complete_devices=""
+          fi
+          echo "complete devices : $complete_devices"
+          echo "complete_devices_string=$complete_devices" >> $GITHUB_ENV
+          
+
+      - name : fail devices
+        run: |
+          target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | tr ',' ' ')
+          echo "target_devices : $target_devices"
+          complete_device_arr=($(echo $complete_devices_string))
+          echo "complete_device_arr : ${complete_device_arr[@]}"
+          for i in "${complete_device_arr[@]}"
+          do 
+            target_devices=$(echo $target_devices | sed "s/$i//")
+          done
+          echo "fail devices : $target_devices"
+          echo "failure_devices=$target_devices" >> $GITHUB_ENV
+
+      - name : inform of success and fail devices
+        run: |
+          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices)"
+          slackboy -m "$msg" -p deploy-process -c ${{ inputs.slack-channel }}
