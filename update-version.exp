@@ -4,11 +4,12 @@ set user [lindex $argv 0]
 set hostname [lindex $argv 1]
 set password [lindex $argv 2]
 set otp [lindex $argv 3]
-set zip_file_name [lindex $argv 4]
+set code_name [lindex $argv 4]
+set update_version [lindex $argv 5]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 30
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; check-file-existence --file /tmp/$zip_file_name"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname} ". /etc/profile; update-version --code-name ${code_name} --update-version ${update_version}"
 expect {
         "assword:" {
                 send "${password}\n"
@@ -19,3 +20,4 @@ expect {
                 exp_continue
         }
 }
+
