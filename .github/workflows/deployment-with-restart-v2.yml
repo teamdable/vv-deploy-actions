@@ -154,9 +154,7 @@ jobs:
         run: |
           action/kill-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
           sleep 10
-          action/kill-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
-          sleep 10
-          action/start-process.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --process-list ${{ inputs.process-list }}
+          action/restart-process.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-list }}
           sleep 10
           action/start-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
       - name: archive completed host name
