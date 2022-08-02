@@ -158,7 +158,7 @@ jobs:
       - name: restart new process
         run: |
           action/kill-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
-          sleep 10
+          sleep 15
           action/restart-process.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-list }}
           sleep 10
           action/start-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
