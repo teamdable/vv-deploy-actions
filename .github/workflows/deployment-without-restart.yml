@@ -155,3 +155,42 @@ jobs:
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
           slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
+
+  Complete-device-summary:
+    name: process complete summary
+    if: ${{ always() }}
+    needs: [ Deployment-to-each-device ]
+    runs-on: self-hosted
+    steps:
+      - name: success devices
+        run: |
+          if [[ -e $file_path ]] 
+          then 
+            complete_string=$(cat $file_path)
+            echo "complete_string : $complete_string"
+            complete_devices=$(echo $complete_string | sed "s/ //g" | sed "s/,/ /g")
+            rm -rf $file_path
+          else
+            complete_devices=""
+          fi
+          echo "complete devices : $complete_devices"
+          echo "complete_devices_string=$complete_devices" >> $GITHUB_ENV
+          
+
+      - name : fail devices
+        run: |
+          target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | tr ',' ' ')
+          echo "target_devices : $target_devices"
+          complete_device_arr=($(echo $complete_devices_string))
+          echo "complete_device_arr : ${complete_device_arr[@]}"
+          for i in "${complete_device_arr[@]}"
+          do 
+            target_devices=$(echo $target_devices | sed "s/$i//")
+          done
+          echo "fail devices : $target_devices"
+          echo "failure_devices=$target_devices" >> $GITHUB_ENV
+
+      - name : inform of success and fail devices
+        run: |
+          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices)"
+          slackboy -m "$msg" -p deploy-process -c ${{ inputs.slack-channel }}
