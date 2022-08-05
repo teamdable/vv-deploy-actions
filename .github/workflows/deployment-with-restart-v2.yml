@@ -155,10 +155,11 @@ jobs:
           UPDATE_VERSION_RAW=$(cat ${{ inputs.version-file-name }} | grep version)
           UPDATE_VERSION=$(echo $UPDATE_VERSION_RAW | tr "=" "\n" | tr ":" "\n" | tr "\"" "\n" | grep "[0-9]\+[.][0-9]\+[.][0-9]\+[(a|b|rc)]*[0-9]*")
           action/update-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.code-name }} $UPDATE_VERSION
+          sleep 10
       - name: restart new process
         run: |
           action/kill-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
-          sleep 15
+          sleep 10
           action/restart-process.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-list }}
           sleep 10
           action/start-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
