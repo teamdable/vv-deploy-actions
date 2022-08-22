@@ -101,11 +101,12 @@ jobs:
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
-          refined_target_device=$(echo "${{ inputs.deploy-target-device }}" | sed "s/ /,/g")
-          refined_exclude_device=$(echo "${{ inputs.exclude-target-device }}" |sed "s/ /,/g")
+          refined_target_device=$(echo "${{ inputs.deploy-target-device }}" | sed "s/  //g" | sed "s/, /,/g" | sed "s/ //g")
+          refined_exclude_device=$(echo "${{ inputs.deploy-exclude-device }}" | sed "s/  //g" | sed "s/, /,/g" | sed "s/ //g")
           if [[ "${{ inputs.deploy-to-all-live-devices }}" == "true" ]]; then DEPLOY_LIVE_ARGS="--include-api-live-inventory"; else DEPLOY_LIVE_ARGS=""; fi
           if [[ -n "${{ inputs.deploy-target-device }}" ]]; then ALLOW_DEVICES_ARGS="--allow-devices $refined_target_device"; else ALLOW_DEVICES_ARGS='--allow-devices ""'; fi
-          if [[ -n "${{ inputs.deploy-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS='--exclude-devices $refined_exclude_device'; else EXCLUDE_DEVICES_ARGS='--exclude-devices ""'; fi
+          if [[ -n "${{ inputs.deploy-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS="--exclude-devices $refined_exclude_device"; else EXCLUDE_DEVICES_ARGS='--exclude-devices ""'; fi
+          echo get-vpn-ip-new arguments : $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS
           VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS --stdout-json )
           echo Target device : "$VPN_IP_JSON"
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
