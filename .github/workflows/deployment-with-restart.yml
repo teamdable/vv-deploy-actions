@@ -72,7 +72,8 @@ jobs:
       - id: send_slack
         run: |
           deploy_username=$(echo 배포 주체: ${{ github.actor }})
-          deploy_msg=$(echo 배포 내용: ${{ inputs.deploy-message }})
+          deploy_msg=$(echo '${{ inputs.deploy-message }}')
+          deploy_msg=$(echo 배포 내용: "$deploy_msg")
           if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
           msg="$(echo ${{ inputs.code-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
