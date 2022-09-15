@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+
+set user [lindex $argv 0]
+set hostname [lindex $argv 1]
+set password [lindex $argv 2]
+set otp [lindex $argv 3]
+set commands [lindex $argv 4]
+set sudo_permission [lindex $argv 5]
+set otp_code [exec oathtool --totp -b ${otp}]
+
+set timeout 20
+set HOME "/home/${user}"
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no ${user}@${hostname}
+expect {
+        "assword:" {
+                send "${password}\n"
+                exp_continue
+        }
+        "Verification code:" {
+                send "${otp_code}\n"
+        }
+}
+
+expect "${user}" {
+            send ". /etc/profile\n"
+             }
+if { ${sudo_permission} == "true" } {
+    expect "${user}" {
+                send "${commands} ${password}\n"
+                send "exit_code=$?\n"
+                send "exit \$exit_code\n"
+                }
+} else {
+    expect "${user}" {
+                send "${commands}\n"
+                send "exit_code=$?\n"
+                send "exit \$exit_code\n"
+                }
+}
+expect eof
+foreach {pid spawnid os_error_flag value} [wait] break
+puts "Exit code of spawned process: $value"
+exit $value
