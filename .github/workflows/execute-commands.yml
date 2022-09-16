@@ -30,7 +30,7 @@ on:
         description: 작업 시작, 종료 안내 알람을 보낼 슬랙 채널
         required: true
         type: string
-      -message:
+      execute-message:
         description: 작업 시작, 종료 안내시 함께 작성되는 메세지
         required: false
         type: string
@@ -42,6 +42,8 @@ on:
       otp:
         description: edge device otp
         required: true
+env:
+  file_path: /home/vv-team/actions/complete_list
 
 jobs:
   Inform-slack-of-start:
@@ -57,10 +59,11 @@ jobs:
       - id: send_slack
         run: |
           execute_username=$(echo 실행 주체: ${{ github.actor }})
-          execute_msg=$(echo 배포 내용: "${{ inputs.execute-message }}")
+          execute_msg=$(echo 실행 내용: "${{ inputs.execute-message }}")
+          execute_commands=$(echo 실행 커맨드: "${{ inputs.commands }}")
           if [[ "${{ inputs.execute-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.execute-target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
-          msg="$(echo 커맨드 `${{ inputs.commands }}`가 엣지디바이스에서 실행됩니다. 기기에 접속을 멈춰주세요.$'\n'$execute_username$'\n'대상 기기: $target_devices$'\n'$execute_msg)"
+          msg="$(echo 커맨드가 엣지디바이스에서 실행됩니다. 기기에 접속을 멈춰주세요.$'\n'$execute_username$'\n'대상 기기: $target_devices$'\n'$execute_msg$'\n'$execute_commands)"
           result=$(slackboy -m "$msg" -p execute-commands -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
@@ -110,6 +113,12 @@ jobs:
           echo '${{ inputs.commands }}'
           action/execute-commands.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} "${{ inputs.commands }}" ${{ inputs.sudo-permission }}
           sleep 10
+      - name: archive completed host name
+        run: |
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          echo "$device_id Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "$device_id," >> $file_path
+          echo "device_id=$device_id" >> $GITHUB_ENV
       - name: inform slackboy of finish
         run: |
           slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
@@ -138,7 +147,7 @@ jobs:
       - name : fail devices
         run: |
           target_devices=$(echo ${{ inputs.execute-target-device }} | sed "s/ //g" | tr ',' ' ')
-          echo "target_devices : $target_devices"
+          echo "target_devices: $target_devices"
           complete_device_arr=($(echo $complete_devices_string))
           echo "complete_device_arr : ${complete_device_arr[@]}"
           for i in "${complete_device_arr[@]}"
