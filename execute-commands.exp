@@ -27,7 +27,7 @@ expect "${user}" {
 if { ${sudo_permission} == "true" } {
     expect "${user}" {
                 send "set +o history\n"
-                send "${commands} ${password}\n"
+                send "echo ${password} | sudo -S ${commands}\n"
                 send "exit_code=$?\n"
                 send "set -o history\n"
                 send "exit \$exit_code\n"
