@@ -30,8 +30,10 @@ expect "${user}" {
 }
 
 expect "${user}" {
+            send "set +o history\n"
             send "bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}\n"
             send "exit_code=$?\n"
+            send "set -o history\n"
             send "exit \$exit_code\n"
             }
 expect eof
