@@ -1,0 +1,163 @@
+name: Execute commands on edge-devices 
+
+on:
+  workflow_call:
+    inputs:
+      execute-to-all-live-devices:
+        description: 라이브 장비에 전체 실행 여부
+        required: false
+        type: string
+      execute-target-device:
+        description: 커맨드 실행 대상이 되는 디바이스
+        required: true
+        type: string
+      execute-exclude-device:
+        description: 커맨드 실행 대상에서 제외되는 디바이스
+        type: string
+      user:
+        description: edge device username
+        required: true
+        type: string
+      commands:
+        description: edge device username
+        required: true
+        type: string
+      sudo-permission:
+        description: edge device username
+        required: true
+        type: string
+      slack-channel:
+        description: 작업 시작, 종료 안내 알람을 보낼 슬랙 채널
+        required: true
+        type: string
+      execute-message:
+        description: 작업 시작, 종료 안내시 함께 작성되는 메세지
+        required: false
+        type: string
+
+    secrets:
+      password:
+        description: edge device password
+        required: true
+      otp:
+        description: edge device otp
+        required: true
+env:
+  file_path: /home/vv-team/actions/complete_list
+
+jobs:
+  Inform-slack-of-start:
+    name: inform of start
+    runs-on: self-hosted
+    outputs:
+      thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
+    steps:
+      - name: Install requirements
+        id: pip_install_requirements
+        run: |
+          pip install -r requirements.txt 
+      - id: send_slack
+        run: |
+          execute_username=$(echo 실행 주체: ${{ github.actor }})
+          execute_msg=$(echo 실행 내용: "${{ inputs.execute-message }}")
+          execute_commands=$(echo 실행 커맨드: "${{ inputs.commands }}")
+          if [[ "${{ inputs.execute-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
+          else target_devices=$(echo ${{ inputs.execute-target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
+          msg="$(echo 커맨드가 엣지디바이스에서 실행됩니다. 기기에 접속을 멈춰주세요.$'\n'$execute_username$'\n'대상 기기: $target_devices$'\n'$execute_msg$'\n'$execute_commands)"
+          result=$(slackboy -m "$msg" -p execute-commands -c "${{ inputs.slack-channel }}")
+          IFS=','; result_arr=(${result}); unset IFS;
+          IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
+          ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
+          echo "::set-output name=thread_ts::$ts_value"
+
+  Checkout-repository:
+    name: checkout and get vpn ip
+    runs-on: self-hosted
+    outputs:
+      vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
+    steps:
+      - name: Checkout the execute-target repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the action repository
+        uses: actions/checkout@v2
+        with:
+          repository: teamdable/vv-deploy-actions
+          path: action/
+
+      - name: Get VPN IP of execute-target devices
+        id: convert_device_to_vpn
+        run: |
+          refined_target_device=$(echo "${{ inputs.execute-target-device }}" | sed "s/  //g" | sed "s/, /,/g" | sed "s/ //g")
+          refined_exclude_device=$(echo "${{ inputs.execute-exclude-device }}" | sed "s/  //g" | sed "s/, /,/g" | sed "s/ //g")
+          if [[ "${{ inputs.execute-to-all-live-devices }}" == "true" ]]; then EXECUTE_LIVE_ARGS="--include-api-live-inventory"; else EXECUTE_LIVE_ARGS=""; fi
+          if [[ -n "${{ inputs.execute-target-device }}" ]]; then ALLOW_DEVICES_ARGS="--allow-devices $refined_target_device"; else ALLOW_DEVICES_ARGS='--allow-devices ""'; fi
+          if [[ -n "${{ inputs.execute-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS="--exclude-devices $refined_exclude_device"; else EXCLUDE_DEVICES_ARGS='--exclude-devices ""'; fi
+          echo get-vpn-ip-new arguments : $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $EXECUTE_LIVE_ARGS
+          VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $EXECUTE_LIVE_ARGS --stdout-json )
+          echo Target device : "$VPN_IP_JSON"
+          echo "::set-output name=vpn_ips::$VPN_IP_JSON"
+
+  Execute-commands-on-each-device:
+    name: execute commands
+    runs-on: self-hosted
+    needs: [Inform-slack-of-start, Checkout-repository]
+    strategy:
+      matrix:
+        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+      fail-fast: false
+
+    steps:
+      - name: Run shell scripts
+        run: |
+          echo '${{ inputs.commands }}'
+          action/execute-commands.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} "${{ inputs.commands }}" ${{ inputs.sudo-permission }}
+          sleep 10
+      - name: archive completed host name
+        run: |
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
+          echo "$device_id Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "$device_id," >> $file_path
+          echo "device_id=$device_id" >> $GITHUB_ENV
+      - name: inform slackboy of finish
+        run: |
+          slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
+
+  Complete-device-summary:
+    name: process complete summary
+    if: ${{ always() }}
+    needs: [ Execute-commands-on-each-device ]
+    runs-on: self-hosted
+    steps:
+      - name: success devices
+        run: |
+          if [[ -e $file_path ]] 
+          then 
+            complete_string=$(cat $file_path)
+            echo "complete_string : $complete_string"
+            complete_devices=$(echo $complete_string | sed "s/ //g" | sed "s/,/ /g")
+            rm -rf $file_path
+          else
+            complete_devices=""
+          fi
+          echo "complete devices : $complete_devices"
+          echo "complete_devices_string=$complete_devices" >> $GITHUB_ENV
+          
+
+      - name : fail devices
+        run: |
+          target_devices=$(echo ${{ inputs.execute-target-device }} | sed "s/ //g" | tr ',' ' ')
+          echo "target_devices: $target_devices"
+          complete_device_arr=($(echo $complete_devices_string))
+          echo "complete_device_arr : ${complete_device_arr[@]}"
+          for i in "${complete_device_arr[@]}"
+          do 
+            target_devices=$(echo $target_devices | sed "s/$i//")
+          done
+          echo "fail devices : $target_devices"
+          echo "failure_devices=$target_devices" >> $GITHUB_ENV
+
+      - name : inform of success and fail devices
+        run: |
+          msg="$(echo 커맨드 실행이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices)"
+          slackboy -m "$msg" -p execute-commands -c ${{ inputs.slack-channel }}
