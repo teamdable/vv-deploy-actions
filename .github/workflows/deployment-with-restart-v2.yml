@@ -63,12 +63,30 @@ env:
   file_path: /home/vv-team/actions/complete_list
 
 jobs:
+  Checkout-repository:
+    name: checkout 
+    runs-on: self-hosted
+    steps:
+      - name: Checkout the deploy-target repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the action repository
+        uses: actions/checkout@v2
+        with:
+          repository: teamdable/vv-deploy-actions
+          path: action/
+  
   Inform-slack-of-start:
     name: inform of start
     runs-on: self-hosted
+    needs: Checkout-repository
     outputs:
       thread_ts: ${{ steps.send_slack.outputs.thread_ts }}
     steps:
+      - id: pip_install_requirements
+        run: |
+          pip install -r action/requirements.txt
+
       - id: send_slack
         run: |
           deploy_username=$(echo 배포 주체: ${{ github.actor }})
@@ -83,21 +101,12 @@ jobs:
           ts_value=$(echo ${ts_value_quote[1]} | tr -d "'")
           echo "::set-output name=thread_ts::$ts_value"
 
-  Checkout-repository:
-    name: checkout and get vpn ip
+  Get-device-vpn-ip:
+    name: get vpn ip
     runs-on: self-hosted
     outputs:
       vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
     steps:
-      - name: Checkout the deploy-target repository
-        uses: actions/checkout@v2
-
-      - name: Checkout the action repository
-        uses: actions/checkout@v2
-        with:
-          repository: teamdable/vv-deploy-actions
-          path: action/
-
       - name: Get VPN IP of deploy-target devices
         id: convert_device_to_vpn
         run: |
@@ -132,10 +141,10 @@ jobs:
   Deployment-to-each-device:
     name: deploy to each device
     runs-on: self-hosted
-    needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
+    needs: [Checkout-repository, Inform-slack-of-start, Get-device-vpn-ip, Build-deploy-file]
     strategy:
       matrix:
-        vpn_ips: ${{ fromJson(needs.Checkout-repository.outputs.vpn_ips) }}
+        vpn_ips: ${{ fromJson(needs.Get-device-vpn-ip.outputs.vpn_ips) }}
       fail-fast: false
 
     steps:
