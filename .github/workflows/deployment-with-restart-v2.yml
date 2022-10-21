@@ -88,6 +88,7 @@ jobs:
     runs-on: self-hosted
     outputs:
       vpn_ips: ${{ steps.convert_device_to_vpn.outputs.vpn_ips }}
+      target_devices: ${{ steps.convert_device_to_vpn.outputs.target_devices }}
     steps:
       - name: Checkout the deploy-target repository
         uses: actions/checkout@v2
@@ -108,8 +109,13 @@ jobs:
           if [[ -n "${{ inputs.deploy-exclude-device }}" ]]; then EXCLUDE_DEVICES_ARGS="--exclude-devices $refined_exclude_device"; else EXCLUDE_DEVICES_ARGS='--exclude-devices ""'; fi
           echo get-vpn-ip-new arguments : $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS
           VPN_IP_JSON=$(action/get-vpn-ip-new $ALLOW_DEVICES_ARGS $EXCLUDE_DEVICES_ARGS $DEPLOY_LIVE_ARGS --stdout-json )
-          echo Target device : "$VPN_IP_JSON"
+          echo Target IPs : "$VPN_IP_JSON"
+          TARGET_DEVICE=$(action/print-device-id --vpn-ip "$VPN_IP_JSON")
+          echo Target Devices : "$TARGET_DEVICE"
           echo "::set-output name=vpn_ips::$VPN_IP_JSON"
+          echo "::set-output name=target_devices::$TARGET_DEVICE"
+          
+       
 
   Build-deploy-file:
     name: preparing for build file
