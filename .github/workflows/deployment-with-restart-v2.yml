@@ -193,7 +193,7 @@ jobs:
   Complete-device-summary:
     name: process complete summary
     if: ${{ always() }}
-    needs: [ Deployment-to-each-device ]
+    needs: [ Get-device-vpn-ip, Deployment-to-each-device ]
     runs-on: self-hosted
     steps:
       - name: success devices
@@ -203,17 +203,20 @@ jobs:
             complete_string=$(cat $file_path)
             echo "complete_string : $complete_string"
             complete_devices=$(echo $complete_string | sed "s/ //g" | sed "s/,/ /g")
+            complete_devices_refined=$(echo $complete_string | sed "s/ //g" | sed "s/,/, /g" | sed "s/, $//g")
             rm -rf $file_path
           else
             complete_devices=""
           fi
           echo "complete devices : $complete_devices"
+          echo "complete devices refined : $complete_devices_refined"
           echo "complete_devices_string=$complete_devices" >> $GITHUB_ENV
+          echo "complete_devices_refined=$complete_devices_refined" >> $GITHUB_ENV
           
 
       - name : fail devices
         run: |
-          target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ //g" | tr ',' ' ')
+          target_devices=$(echo ${{ needs.Get-device-vpn-ip.outputs.target_devices }} | tr ', ' ',')
           echo "target_devices : $target_devices"
           complete_device_arr=($(echo $complete_devices_string))
           echo "complete_device_arr : ${complete_device_arr[@]}"
@@ -221,10 +224,11 @@ jobs:
           do 
             target_devices=$(echo $target_devices | sed "s/$i//")
           done
-          echo "fail devices : $target_devices"
-          echo "failure_devices=$target_devices" >> $GITHUB_ENV
+          target_devices_refined=$(echo $target_devices | sed "s/,*,/, /g" | sed "s/, $//g")
+          echo "fail devices : $target_devices_refined"
+          echo "fail_device_refined=$target_devices_refined" >> $GITHUB_ENV
 
       - name : inform of success and fail devices
         run: |
-          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_string $'\n'실패 디바이스 : $failure_devices)"
+          msg="$(echo 배포작업이 모두 끝났습니다$'\n'완료 디바이스 : $complete_devices_refined $'\n'실패 디바이스 : $fail_device_refined)"
           slackboy -m "$msg" -p deploy-process -c ${{ inputs.slack-channel }}
