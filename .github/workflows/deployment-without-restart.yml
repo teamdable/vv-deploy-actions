@@ -11,6 +11,10 @@ on:
         description: "배포 대상이 되는 디바이스"
         required: true
         type: string
+      deploy-exclude-device:
+        description: "배포 제외대상이 되는 디바이스"
+        required: true
+        type: string
       user:
         description: edge device username
         required: true
