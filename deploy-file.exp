@@ -8,7 +8,7 @@ set zip_file_name [lindex $argv 4]
 set otp_code [exec oathtool --totp -b ${otp}]
 
 set timeout 30
-spawn /usr/bin/scp -o StrictHostKeyChecking=no ./${zip_file_name} ${user}@${hostname}:/tmp/
+spawn /usr/bin/scp -v -o StrictHostKeyChecking=no ./${zip_file_name} ${user}@${hostname}:/tmp/
 expect {
         "assword:" {
                 send "${password}\n"
