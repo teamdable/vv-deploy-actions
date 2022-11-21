@@ -26,12 +26,16 @@ expect "${user}" {
              }
 
 expect "${user}" {
-            send "backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}\n"
+            send "set +o history\n"
+            send "echo ${password} | sudo -S /home/vv-team/vv-edge-setup/bin/backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}\n"
+            send "set -o history\n"
 }
 
 expect "${user}" {
+            send "set +o history\n"
             send "bash ${parent_dir}/${code_name}/bin/deploy/install-settings.sh ${password}\n"
             send "exit_code=$?\n"
+            send "set -o history\n"
             send "exit \$exit_code\n"
             }
 expect eof
