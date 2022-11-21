@@ -96,6 +96,7 @@ jobs:
   Restart-process-of-each-device:
     name: restart process of each device
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: [Inform-slack-of-start, Checkout-repository]
     strategy:
       matrix:

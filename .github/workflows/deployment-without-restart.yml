@@ -113,6 +113,7 @@ jobs:
   Build-deploy-file:
     name: preparing for build file
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: Checkout-repository
     outputs:
       zip_file_name: ${{ steps.build_deploy_code.outputs.zip_file_name }}
@@ -131,6 +132,7 @@ jobs:
   Deployment-to-each-device:
     name: deploy to each device
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: [Inform-slack-of-start, Checkout-repository, Build-deploy-file]
     strategy:
       matrix:
