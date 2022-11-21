@@ -101,6 +101,7 @@ jobs:
   Execute-commands-on-each-device:
     name: execute commands
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: [Inform-slack-of-start, Checkout-repository]
     strategy:
       matrix:
