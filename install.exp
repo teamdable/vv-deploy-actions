@@ -27,7 +27,7 @@ expect "${user}" {
 
 expect "${user}" {
             send "set +o history\n"
-            send "echo ${password} | sudo -S /home/vv-team/vv-edge-setup/bin/backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name}\n"
+            send "backup-and-unzip --zip-filename ${zip_file_name} --parent-dir ${parent_dir} --code-name ${code_name} --password ${password} \n"
             send "set -o history\n"
 }
 
