@@ -166,7 +166,7 @@ jobs:
           sleep 10
       - name: archive completed host name
         run: |
-          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id -l)
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
           echo "$device_id Deployment Finish!!! :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "$device_id," >> $file_path
           echo "device_id=$device_id" >> $GITHUB_ENV

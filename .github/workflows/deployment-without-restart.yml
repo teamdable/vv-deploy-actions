@@ -160,7 +160,7 @@ jobs:
           action/update-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.code-name }} $UPDATE_VERSION
       - name: inform slackboy of finish
         run: |
-          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id -l)
+          device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
           slackboy -m "$device_id의 작업이 모두 끝났습니다" -c ${{ inputs.slack-channel }} --reply-ts ${{ needs.Inform-slack-of-start.outputs.thread_ts }}
 
   Complete-device-summary:
