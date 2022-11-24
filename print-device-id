@@ -15,7 +15,7 @@ def split_string_into_list(string: str, delimiter=','):
 
 
 def print_device_id(vpn_ip: str | list) -> None:
-    vpn_ip = vpn_ip.strip('[|]')
+    vpn_ip = vpn_ip.strip('[|]').replace('"', '')
     vpn_ip_list = split_string_into_list(vpn_ip)
     device_id = _get_device_id_from_list(vpn_ip_list=vpn_ip_list)
 
