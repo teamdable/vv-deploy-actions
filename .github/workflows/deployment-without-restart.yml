@@ -75,7 +75,7 @@ jobs:
           deploy_msg=$(echo 배포 내용: "$deploy_msg")
           if [[ "${{ inputs.deploy-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.deploy-target-device }} | sed "s/ /, /g"); fi
-          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. 기기에 접속을 멈춰주세요.$'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
+          msg="$(echo ${{ inputs.process-name }} 배포가 디바이스에 시작됩니다. $'\n'$deploy_username$'\n'배포 기기: $target_devices$'\n'$deploy_msg)"
 
           result=$(slackboy -m "$msg" -p deploy-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
@@ -144,15 +144,12 @@ jobs:
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
-          sleep 10
       - name: install runtime environment
         run: |
           action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
-          sleep 10
       - name: validate version
         run: |
           action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
-          sleep 10
       - name: update version of metadata
         run: |
           UPDATE_VERSION_RAW=$(cat ${{ inputs.version-file-name }} | grep version)
