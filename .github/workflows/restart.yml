@@ -59,7 +59,7 @@ jobs:
           message=$(echo 작업 내용: "$message")
           if [[ "${{ inputs.all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
-          msg="$(echo ${{ inputs.code-name }} 프로세스가 디바이스에서 재시작됩니다. 디바이스 접속을 멈춰주세요.$'\n'$username$'\n'작업 기기: $target_devices$'\n'$message)"
+          msg="$(echo ${{ inputs.code-name }} 프로세스가 디바이스에서 재시작됩니다. $'\n'$username$'\n'작업 기기: $target_devices$'\n'$message)"
           result=$(slackboy -m "$msg" -p restart-process -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;

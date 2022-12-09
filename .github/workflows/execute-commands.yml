@@ -63,7 +63,7 @@ jobs:
           execute_commands=$(echo 실행 커맨드: "${{ inputs.commands }}")
           if [[ "${{ inputs.execute-to-all-live-devices}}" == "true" ]] ; then target_devices="전체 live 장비"
           else target_devices=$(echo ${{ inputs.execute-target-device }} | sed "s/ //g" | sed "s/,/, /g"); fi
-          msg="$(echo 커맨드가 엣지디바이스에서 실행됩니다. 기기에 접속을 멈춰주세요.$'\n'$execute_username$'\n'대상 기기: $target_devices$'\n'$execute_msg$'\n'$execute_commands)"
+          msg="$(echo 커맨드가 엣지디바이스에서 실행됩니다. $'\n'$execute_username$'\n'대상 기기: $target_devices$'\n'$execute_msg$'\n'$execute_commands)"
           result=$(slackboy -m "$msg" -p execute-commands -c "${{ inputs.slack-channel }}")
           IFS=','; result_arr=(${result}); unset IFS;
           IFS=':'; ts_value_quote=(${result_arr[2]}); unset IFS;
