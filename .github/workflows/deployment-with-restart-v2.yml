@@ -158,27 +158,21 @@ jobs:
         run: |
           echo ${{ secrets.password }} | sudo -S apt-get install expect oathtool -y
           action/deploy-file.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }}
-          sleep 10
       - name: install runtime environment
         run: |
           action/install-env.sh --host ${{ matrix.vpn_ips }}  --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --zip-file-name ${{ needs.Build-deploy-file.outputs.zip_file_name }} --parent-dir ${{ inputs.parent-dir }} --code-name ${{ inputs.code-name }}
-          sleep 10
       - name: validate version
         run: |
           action/validate-version.sh --host ${{ matrix.vpn_ips }} --user ${{ inputs.user }} --password ${{ secrets.password }} --otp ${{ secrets.otp }} --code-name ${{ inputs.code-name }} --version-file-name ${{ inputs.version-file-name }} --parent-dir ${{ inputs.parent-dir }}
-          sleep 10
       - name: update version of metadata
         run: |
           UPDATE_VERSION_RAW=$(cat ${{ inputs.version-file-name }} | grep version)
           UPDATE_VERSION=$(echo $UPDATE_VERSION_RAW | tr "=" "\n" | tr ":" "\n" | tr "\"" "\n" | grep "[0-9]\+[.][0-9]\+[.][0-9]\+[(a|b|rc)]*[0-9]*")
           action/update-version.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.code-name }} $UPDATE_VERSION
-          sleep 10
       - name: restart new process
         run: |
           action/kill-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
-          sleep 10
           action/restart-process.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} ${{ inputs.process-list }}
-          sleep 10
           action/start-process-monitoring.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }}
       - name: archive completed host name
         run: |
