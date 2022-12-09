@@ -113,7 +113,6 @@ jobs:
         run: |
           echo '${{ inputs.commands }}'
           action/execute-commands.exp ${{ inputs.user }} ${{ matrix.vpn_ips }} ${{ secrets.password }} ${{ secrets.otp }} "${{ inputs.commands }}" ${{ inputs.sudo-permission }}
-          sleep 10
       - name: archive completed host name
         run: |
           device_id=$(edge-info-search --query vpn_ip=="${{ matrix.vpn_ips }}" -c device_id)
